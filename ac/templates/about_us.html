@@ -1,0 +1,250 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - AgriCommerce</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/about_us.css'%}">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">
+            <div class="header-container">
+                <div class="logo">
+                    <img src="{% static 'images/logo.jpg'%}" alt="AgriTrade Logo">
+                    <h1>Agri-<span>commerce</span></h1>
+                </div>
+                <nav>
+                    <ul>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="#" class="active">About</a></li>
+                        <li><a href="{% url 'blog'%}">Blog</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="about-hero">
+        <div class="container">
+            <h1>About AgriCommerce</h1>
+            <p>Connecting farmers directly to buyers for fair and transparent agricultural trade</p>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section class="about-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Our Story</h2>
+            </div>
+            <div class="about-content">
+                <div class="about-text">
+                    <h3>Revolutionizing Agricultural Commerce</h3>
+                    <p>Founded in 2023, AgriCommerce was born from a simple idea: to create a direct connection between farmers and buyers, eliminating unnecessary middlemen and ensuring fair prices for all.</p>
+                    <p>Our platform has grown from a small local initiative to a nationwide network serving thousands of farmers and buyers across the country. We're proud to have facilitated over $10M in agricultural trade while maintaining our commitment to transparency and fairness.</p>
+                    
+                    <div class="mission-vision">
+                        <div class="mission-box">
+                            <i class="fas fa-bullseye"></i>
+                            <h4>Our Mission</h4>
+                            <p>To empower farmers with direct market access and provide buyers with fresh, traceable agricultural products at fair prices.</p>
+                        </div>
+                        <div class="vision-box">
+                            <i class="fas fa-eye"></i>
+                            <h4>Our Vision</h4>
+                            <p>A world where agricultural trade is transparent, efficient, and beneficial for all participants in the supply chain.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="about-img">
+                    <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ce?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Farmers discussing">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="container">
+            <div class="section-title">
+                <h2>Meet Our Founders</h2>
+            </div>
+            <div class="team-grid">
+                <!-- Founder 1 -->
+                <div class="team-member">
+                    <div class="member-img">
+                        <img src="{% static 'images/miki.jpg'%}" alt="Mikiyas Kasshun">
+                    </div>
+                    <div class="member-info">
+                        <h3>Mikiyas Kasshun</h3>
+                        <p class="position">CEO & Co-Founder</p>
+                        <p class="bio">Agricultural economist with 15 years experience in farm-to-market systems. Leads overall strategy and business development.</p>
+                        <div class="member-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Founder 2 -->
+                <div class="team-member">
+                    <div class="member-img">
+                        <img src="" alt="Dagim Maru">
+                    </div>
+                    <div class="member-info">
+                        <h3>Dagim Maru</h3>
+                        <p class="position">CTO & Co-Founder</p>
+                        <p class="bio">Tech innovator specializing in agricultural platforms. Oversees all technical development and product innovation.</p>
+                        <div class="member-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Founder 3 -->
+                <div class="team-member">
+                    <div class="member-img">
+                        <img src="" alt="Zeamanuel million">
+                    </div>
+                    <div class="member-info">
+                        <h3>Zeamanuel million</h3>
+                        <p class="position">COO & Co-Founder</p>
+                        <p class="bio">Operations expert with background in logistics and supply chain management. Ensures smooth platform operations.</p>
+                        <div class="member-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Founder 4 -->
+                <div class="team-member">
+                    <div class="member-img">
+                        <img src="" alt="Biniyam dido">
+                    </div>
+                    <div class="member-info">
+                        <h3>Biniyam dido</h3>
+                        <p class="position">CFO & Co-Founder</p>
+                        <p class="bio">Financial strategist ensuring sustainable growth and farmer payment systems. Manages all financial operations.</p>
+                        <div class="member-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Founder 5 -->
+                <div class="team-member">
+                    <div class="member-img">
+                        <img src="" alt="Daniel Getachew">
+                    </div>
+                    <div class="member-info">
+                        <h3>Daniel Getachew</h3>
+                        <p class="position">Head of Farmer Relations</p>
+                        <p class="bio">Former farmer who bridges the gap between technology and agricultural communities. Leads farmer onboarding.</p>
+                        <div class="member-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Founder 6 -->
+                <div class="team-member">
+                    <div class="member-img">
+                        <img src="" alt="kenawake lelisa">
+                    </div>
+                    <div class="member-info">
+                        <h3>kenawake lelisa</h3>
+                        <p class="position">Head of Buyer Relations</p>
+                        <p class="bio">Connects retailers and consumers with quality farm products. Manages buyer partnerships and satisfaction.</p>
+                        <div class="member-social">
+                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i class="fab fa-twitter"></i></a>
+                            <a href="#"><i class="fas fa-envelope"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="container">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <h3>10,000+</h3>
+                    <p>Farmers Empowered</p>
+                </div>
+                <div class="stat-item">
+                    <h3>5,000+</h3>
+                    <p>Verified Buyers</p>
+                </div>
+                <div class="stat-item">
+                    <h3>$10M+</h3>
+                    <p>In Transactions</p>
+                </div>
+                <div class="stat-item">
+                    <h3>98%</h3>
+                    <p>Satisfaction Rate</p>
+                </div>
+            </div>
+        </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-container">
+                <div class="footer-about">
+                    <div class="footer-logo">
+                        <i class="fas fa-leaf"></i> Agri-Commerce
+                    </div>
+                    <p>Connecting farmers directly with buyers for fair and transparent agricultural trade since 2023.</p>
+                    <div class="social-links">
+                
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+               
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home'%}">Home</a></li>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="{% url 'products'%}">Products</a></li>
+                        <li><a href="{% url 'home'%}">Contact</a></li>
+                       
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Contact Info</h4>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> </li>
+                        <li><i class="fas fa-phone"></i> </li>
+                        <li><i class="fas fa-envelope"></i> info@agricommerce.com</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 AgriCommerce. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'css/about_us.js'%}"></script>
+</body>
+</html>

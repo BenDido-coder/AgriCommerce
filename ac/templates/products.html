@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agri-Commerce - Farm Products Marketplace</title>
+    <link rel="stylesheet" href="{% static 'css/products.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <div class="logo-container">
+                <img src="{% static 'images/logo.jpg' %}" alt="Agri-Commerce Logo" class="logo-img">
+                <div class="logo-text">Agri-Commerce</div>
+            </div>
+            <div class="nav-links">
+                <a href="{% url 'home' %}">Home</a>
+                <a href="#">Products</a>
+                <a href="{% url 'my_account' %}">My Account</a>
+                
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <section class="search-section">
+            <h1 class="search-title">Find Fresh Farm Products</h1>
+            <form class="search-form" id="searchForm">
+                <input type="text" class="search-input" placeholder="Search for products..." id="searchInput">
+                <button type="submit" class="search-button">Search</button>
+            </form>
+        </section>
+
+        <div class="filter-section">
+            <select class="filter-dropdown" id="categoryFilter">
+                <option value="">All Categories</option>
+                <option value="vegetables">Vegetables</option>
+                <option value="fruits">Fruits</option>
+                <option value="grains">Grains</option>
+                <option value="dairy">Dairy</option>
+                <option value="meat">Meat</option>
+                <option value="meat">Livestock</option>
+                <option value="meat">Poultry</option>
+            </select>
+
+            <select class="filter-dropdown" id="priceFilter">
+                <option value="">Price Range</option>
+                <option value="low">Under 40ETB</option>
+                <option value="medium">40ETB - 150ETB</option>
+                <option value="high">Over 150ETB</option>
+            </select>
+
+            <select class="filter-dropdown" id="locationFilter">
+                <option value="">All Locations</option>
+                <option value="Addis Ababa">Addis Ababa</option>
+                <option value="Oromia">Oromia Region</option>
+                <option value="Amhara">Amhara Region</option>
+                <option value="south">SNNPR Region</option>
+            </select>
+
+            <select class="filter-dropdown" id="sortFilter">
+                <option value="popular">Sort By: Popular</option>
+                <option value="newest">Sort By: Newest</option>
+                <option value="price-low">Sort By: Price Low to High</option>
+                <option value="price-high">Sort By: Price High to Low</option>
+                <option value="rating">Sort By: Highest Rated</option>
+            </select>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <!-- Products will be loaded here dynamically -->
+            <p style="grid-column: 1/-1; text-align: center;">Loading products...</p>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div class="modal" id="productModal">
+        <div class="modal-content product-modal-content">
+            <span class="close-modal" id="closeProductModal">&times;</span>
+            <div class="product-detail-container" id="productDetailContainer">
+                <!-- Product details will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Farmer Dashboard Modal -->
+    <div class="modal" id="farmerModal">
+        <div class="modal-content farmer-modal-content">
+            <span class="close-modal" id="closeFarmerModal">&times;</span>
+            <div class="farmer-dashboard" id="farmerDashboard">
+                <!-- Farmer dashboard will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="{% static 'css/products.js' %}"></script>
+</body>
+</html>
