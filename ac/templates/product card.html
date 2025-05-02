@@ -1,10 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Card Demo</title>
+    <title>Product Card - AgriCommerce</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/payments.css' %}">
     <style>
         * {
             margin: 0;
@@ -13,24 +15,14 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
-        body {
-            background-color: #f5f5f5;
-            padding: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        
         .product-card {
             background-color: white;
             border-radius: 8px;
             overflow: hidden;
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
             transition: transform 0.3s, box-shadow 0.3s;
-            cursor: pointer;
-            position: relative;
             width: 280px;
+            margin: 15px;
         }
         
         .product-card:hover {
@@ -88,10 +80,6 @@
             font-weight: 500;
         }
         
-        .farmer-name:hover {
-            text-decoration: underline;
-        }
-        
         .product-rating {
             display: flex;
             align-items: center;
@@ -109,15 +97,18 @@
         .product-actions {
             display: flex;
             justify-content: space-between;
+            gap: 10px;
         }
         
-        .view-btn, .add-to-cart {
+        .view-btn, .add-to-cart, .buy-now-btn {
             padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
             font-weight: 500;
             transition: all 0.3s;
             border: none;
+            text-align: center;
+            flex: 1;
         }
         
         .view-btn {
@@ -139,563 +130,104 @@
         .add-to-cart:hover {
             background-color: #F57C00;
         }
-        
-        /* Modal styles */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            z-index: 1000;
-            overflow-y: auto;
-        }
-        
-        .modal-content {
-            background-color: white;
-            margin: 50px auto;
-            padding: 30px;
-            border-radius: 8px;
-            max-width: 800px;
-            width: 90%;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
-            position: relative;
-        }
-        
-        .close-modal {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #666;
-        }
-        
-        .product-detail-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-        }
-        
-        .product-detail-image {
-            width: 100%;
-            height: 400px;
-            object-fit: cover;
-            border-radius: 8px;
-        }
-        
-        .product-detail-info {
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .product-detail-name {
-            font-size: 28px;
-            color: #2E7D32;
-            margin-bottom: 15px;
-        }
-        
-        .product-detail-price {
-            font-size: 24px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        
-        .product-detail-description {
-            margin-bottom: 20px;
-            line-height: 1.7;
-        }
-        
-        .product-detail-meta {
-            margin-bottom: 20px;
-        }
-        
-        .product-detail-meta div {
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-        }
-        
-        .product-detail-meta i {
-            width: 20px;
-            margin-right: 10px;
-            color: #2E7D32;
-        }
-        
-        .product-detail-actions {
-            display: flex;
-            gap: 15px;
-            margin-top: auto;
-        }
-        
-        .quantity-selector {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .quantity-btn {
-            width: 30px;
-            height: 30px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        
-        .quantity-input {
-            width: 50px;
-            text-align: center;
-            padding: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        
-        .buy-now-btn, .add-to-cart-btn {
-            padding: 12px 20px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-        }
-        
+
         .buy-now-btn {
-            background-color: #2E7D32;
-            color: white;
-        }
-        
-        .buy-now-btn:hover {
-            background-color: #1B5E20;
-        }
-        
-        .add-to-cart-btn {
-            background-color: #FF9800;
-            color: white;
-        }
-        
-        .add-to-cart-btn:hover {
-            background-color: #F57C00;
-        }
-        
-        /* Farmer Dashboard styles */
-        .farmer-dashboard {
-            display: grid;
-            grid-template-columns: 250px 1fr;
-            gap: 30px;
-        }
-        
-        .farmer-avatar-large {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 20px;
-            display: block;
-            border: 3px solid #2E7D32;
-        }
-        
-        .farmer-name-large {
-            text-align: center;
-            color: #2E7D32;
-            margin-bottom: 5px;
-        }
-        
-        .farmer-location {
-            text-align: center;
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 14px;
-        }
-        
-        .farmer-stats {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        
-        .stat-item {
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 20px;
-            font-weight: bold;
-            color: #2E7D32;
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .farmer-menu {
-            list-style: none;
-        }
-        
-        .farmer-menu li {
-            margin-bottom: 10px;
-        }
-        
-        .farmer-menu a {
-            display: block;
-            padding: 8px 10px;
-            color: #333;
-            text-decoration: none;
-            border-radius: 4px;
-            transition: all 0.3s;
-        }
-        
-        .farmer-menu a:hover, .farmer-menu a.active {
-            background-color: #2E7D32;
-            color: white;
-        }
-        
-        .farmer-menu i {
-            width: 20px;
-            margin-right: 10px;
-        }
-        
-        .farmer-products-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        /* Notification */
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
             background-color: #4CAF50;
             color: white;
-            padding: 15px 20px;
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .buy-now-btn:hover {
+            background-color: #388E3C;
+        }
+
+        /* Payment-specific styles */
+        .payment-badge {
+            background-color: #2196F3;
+            color: white;
+            padding: 2px 8px;
             border-radius: 4px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            display: none;
-            z-index: 1001;
+            font-size: 12px;
+            margin-left: 5px;
         }
     </style>
 </head>
 <body>
-    <!-- Single Product Card -->
     <div class="product-card">
+        {% if product.is_new %}
         <div class="product-badge">New</div>
-        <img src="https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Organic Tomatoes" class="product-image">
+        {% endif %}
+        
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+        
         <div class="product-info">
-            <h3 class="product-name">Organic Tomatoes</h3>
+            <h3 class="product-name">{{ product.name }}</h3>
+            
             <div class="product-farmer">
-                <img src="https://images.unsplash.com/photo-1600486913747-55e5470d6f40?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Green Valley Farms" class="farmer-avatar">
-                <a href="#" class="farmer-name" data-farmer-id="101">Green Valley Farms</a>
+                <img src="{{ product.seller.profile.image.url }}" alt="{{ product.seller.username }}" class="farmer-avatar">
+                <span class="farmer-name">{{ product.seller.username }}</span>
             </div>
+            
             <div class="product-rating">
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star"></i>
-                <i class="fas fa-star-half-alt"></i>
-                <span>(24)</span>
+                {% for i in "12345" %}
+                    {% if forloop.counter <= product.average_rating %}
+                        <i class="fas fa-star"></i>
+                    {% elif forloop.counter|subtract:0.5 <= product.average_rating %}
+                        <i class="fas fa-star-half-alt"></i>
+                    {% else %}
+                        <i class="far fa-star"></i>
+                    {% endif %}
+                {% endfor %}
+                <span>({{ product.review_count }})</span>
             </div>
-            <div class="product-price">$3.99 <small>per lb</small></div>
+            
+            <div class="product-price">{{ product.price }} ETB <small>per {{ product.unit }}</small></div>
+            
             <div class="product-actions">
-                <button class="view-btn" data-product-id="1">View Details</button>
-                <button class="add-to-cart" data-product-id="1">Add to Cart</button>
+                <button class="view-btn" onclick="window.location.href='{% url 'product_detail' product.id %}'">
+                    View Details
+                </button>
+                <button class="add-to-cart" data-product-id="{{ product.id }}">
+                    Add to Cart
+                </button>
             </div>
+
+            <!-- Telebirr Payment Button -->
+            {% if user.is_authenticated and user != product.seller %}
+            <a href="{% url 'initiate_payment' product.id %}" class="buy-now-btn">
+                <i class="fas fa-bolt"></i> Buy with Telebirr
+                <span class="payment-badge">Secure</span>
+            </a>
+            {% elif not user.is_authenticated %}
+            <button class="buy-now-btn" onclick="window.location.href='{% url 'login' %}?next={% url 'initiate_payment' product.id %}'">
+                <i class="fas fa-sign-in-alt"></i> Login to Buy
+            </button>
+            {% endif %}
         </div>
     </div>
-
-    <!-- Product Detail Modal -->
-    <div class="modal" id="productModal">
-        <div class="modal-content product-modal-content">
-            <span class="close-modal" id="closeProductModal">&times;</span>
-            <div class="product-detail-container" id="productDetailContainer">
-                <!-- Will be filled by JavaScript -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Farmer Dashboard Modal -->
-    <div class="modal" id="farmerModal">
-        <div class="modal-content farmer-modal-content">
-            <span class="close-modal" id="closeFarmerModal">&times;</span>
-            <div class="farmer-dashboard" id="farmerDashboard">
-                <!-- Will be filled by JavaScript -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Notification -->
-    <div class="notification" id="notification"></div>
 
     <script>
-        // Sample product data
-        const product = {
-            id: 1,
-            name: "Organic Tomatoes",
-            image: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-            price: 3.99,
-            units: "per lb",
-            category: "vegetables",
-            description: "Fresh organic tomatoes grown without pesticides. Perfect for salads, sauces, and sandwiches. Harvested at peak ripeness for maximum flavor and nutrition. Grown using sustainable farming practices that protect the environment.",
-            rating: 4.5,
-            reviews: 24,
-            stock: 50,
-            location: "north",
-            harvestDate: "2023-06-15",
-            farmer: {
-                id: 101,
-                name: "Green Valley Farms",
-                avatar: "https://images.unsplash.com/photo-1600486913747-55e5470d6f40?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80",
-                bio: "Family-owned farm specializing in organic vegetables since 1995. Committed to sustainable farming practices that protect the environment while delivering the freshest produce to our customers. Located in the fertile valleys of the northern region.",
-                location: "Northern Region",
-                joined: "2018-03-10",
-                products: 12,
-                rating: 4.7,
-                followers: 245
-            }
-        };
-
-        // DOM elements
-        const productModal = document.getElementById('productModal');
-        const closeProductModal = document.getElementById('closeProductModal');
-        const productDetailContainer = document.getElementById('productDetailContainer');
-        const farmerModal = document.getElementById('farmerModal');
-        const closeFarmerModal = document.getElementById('closeFarmerModal');
-        const farmerDashboard = document.getElementById('farmerDashboard');
-        const notification = document.getElementById('notification');
-        let cart = [];
-
-        // Product card click event
-        document.querySelector('.product-card').addEventListener('click', function(e) {
-            if (e.target.tagName === 'BUTTON' || e.target.tagName === 'A') {
-                return;
-            }
-            showProductModal(product.id);
-        });
-
-        // View button click
-        document.querySelector('.view-btn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            showProductModal(product.id);
-        });
-
-        // Add to cart button click
-        document.querySelector('.add-to-cart').addEventListener('click', function(e) {
-            e.stopPropagation();
-            addToCart(product.id);
-        });
-
-        // Farmer name click
-        document.querySelector('.farmer-name').addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            showFarmerModal(product.farmer.id);
-        });
-
-        // Close modals
-        closeProductModal.addEventListener('click', function() {
-            productModal.style.display = 'none';
-        });
-
-        closeFarmerModal.addEventListener('click', function() {
-            farmerModal.style.display = 'none';
-        });
-
-        // Close modals when clicking outside
-        window.addEventListener('click', function(e) {
-            if (e.target === productModal) {
-                productModal.style.display = 'none';
-            }
-            if (e.target === farmerModal) {
-                farmerModal.style.display = 'none';
-            }
-        });
-
-        // Show product modal
-        function showProductModal(productId) {
-            productDetailContainer.innerHTML = `
-                <div class="product-detail-image-container">
-                    <img src="${product.image}" alt="${product.name}" class="product-detail-image">
-                </div>
-                <div class="product-detail-info">
-                    <h1 class="product-detail-name">${product.name}</h1>
-                    <div class="product-detail-price">$${product.price.toFixed(2)} ${product.units}</div>
-                    
-                    <div class="product-rating">
-                        ${generateStarRating(product.rating)}
-                        <span>${product.rating} (${product.reviews} reviews)</span>
-                    </div>
-                    
-                    <div class="product-detail-meta">
-                        <div><i class="fas fa-tag"></i> Category: ${product.category.charAt(0).toUpperCase() + product.category.slice(1)}</div>
-                        <div><i class="fas fa-box-open"></i> Available: ${product.stock} ${product.units}</div>
-                        <div><i class="fas fa-calendar-alt"></i> Harvested: ${new Date(product.harvestDate).toLocaleDateString()}</div>
-                        <div><i class="fas fa-map-marker-alt"></i> Location: ${product.farmer.location}</div>
-                    </div>
-                    
-                    <h3>Description</h3>
-                    <p class="product-detail-description">${product.description}</p>
-                    
-                    <div class="product-detail-farmer">
-                        <h3>Sold By</h3>
-                        <div class="product-farmer" style="margin-top: 10px;">
-                            <img src="${product.farmer.avatar}" alt="${product.farmer.name}" class="farmer-avatar">
-                            <a href="#" class="farmer-name" data-farmer-id="${product.farmer.id}">${product.farmer.name}</a>
-                        </div>
-                    </div>
-                    
-                    <div class="product-detail-actions">
-                        <div class="quantity-selector">
-                            <button class="quantity-btn minus">-</button>
-                            <input type="number" class="quantity-input" value="1" min="1" max="${product.stock}">
-                            <button class="quantity-btn plus">+</button>
-                        </div>
-                        <button class="buy-now-btn">Buy Now</button>
-                        <button class="add-to-cart-btn" data-product-id="${product.id}">Add to Cart</button>
-                    </div>
-                </div>
-            `;
-            
-            // Add event listener to farmer name in modal
-            document.querySelector('.product-detail-info .farmer-name').addEventListener('click', function(e) {
-                e.preventDefault();
-                productModal.style.display = 'none';
-                showFarmerModal(product.farmer.id);
-            });
-            
-            // Add event listener to add to cart button in modal
-            document.querySelector('.add-to-cart-btn').addEventListener('click', function() {
-                const quantity = parseInt(document.querySelector('.quantity-input').value);
-                addToCart(product.id, quantity);
-            });
-            
-            // Quantity selector functionality
-            document.querySelector('.quantity-btn.minus').addEventListener('click', function() {
-                const input = document.querySelector('.quantity-input');
-                if (parseInt(input.value) > 1) {
-                    input.value = parseInt(input.value) - 1;
+        // Add to cart functionality
+        document.querySelector('.add-to-cart').addEventListener('click', function() {
+            const productId = this.getAttribute('data-product-id');
+            fetch(`/api/add-to-cart/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({quantity: 1})
+            })
+            .then(response => response.json())
+            .then(data => {
+                if(data.success) {
+                    // Update cart count in navbar or show notification
+                    console.log('Added to cart successfully');
                 }
             });
-            
-            document.querySelector('.quantity-btn.plus').addEventListener('click', function() {
-                const input = document.querySelector('.quantity-input');
-                if (parseInt(input.value) < product.stock) {
-                    input.value = parseInt(input.value) + 1;
-                }
-            });
-            
-            productModal.style.display = 'block';
-        }
-
-        // Show farmer modal
-        function showFarmerModal(farmerId) {
-            farmerDashboard.innerHTML = `
-                <div class="farmer-sidebar">
-                    <img src="${product.farmer.avatar}" alt="${product.farmer.name}" class="farmer-avatar-large">
-                    <h2 class="farmer-name-large">${product.farmer.name}</h2>
-                    <div class="farmer-location">
-                        <i class="fas fa-map-marker-alt"></i> ${product.farmer.location}
-                    </div>
-                    
-                    <div class="farmer-stats">
-                        <div class="stat-item">
-                            <div class="stat-value">${product.farmer.products}</div>
-                            <div class="stat-label">Products</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${product.farmer.rating}</div>
-                            <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">${product.farmer.followers}</div>
-                            <div class="stat-label">Followers</div>
-                        </div>
-                    </div>
-                    
-                    <ul class="farmer-menu">
-                        <li><a href="#" class="active"><i class="fas fa-store"></i> Products</a></li>
-                        <li><a href="#"><i class="fas fa-info-circle"></i> About</a></li>
-                        <li><a href="#"><i class="fas fa-star"></i> Reviews</a></li>
-                        <li><a href="#"><i class="fas fa-envelope"></i> Contact</a></li>
-                    </ul>
-                </div>
-                
-                <div class="farmer-content">
-                    <h2>About ${product.farmer.name}</h2>
-                    <p>${product.farmer.bio}</p>
-                    
-                    <h3 style="margin-top: 20px;">Products from ${product.farmer.name}</h3>
-                    <div class="farmer-products-grid">
-                        <div class="product-card" style="cursor: pointer;">
-                            <img src="${product.image}" alt="${product.name}" class="product-image">
-                            <div class="product-info">
-                                <h3 class="product-name">${product.name}</h3>
-                                <div class="product-price">$${product.price.toFixed(2)} ${product.units}</div>
-                                <button class="view-btn" data-product-id="${product.id}" style="width: 100%; margin-top: 10px;">View Product</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            // Add event listeners to product cards in farmer modal
-            document.querySelector('.farmer-content .product-card').addEventListener('click', function() {
-                farmerModal.style.display = 'none';
-                showProductModal(product.id);
-            });
-            
-            farmerModal.style.display = 'block';
-        }
-
-        // Add to cart function
-        function addToCart(productId, quantity = 1) {
-            cart.push({
-                id: product.id,
-                name: product.name,
-                price: product.price,
-                image: product.image,
-                units: product.units,
-                farmer: product.farmer.name,
-                quantity: quantity
-            });
-            
-            showNotification(`${quantity} ${product.name} added to cart!`);
-        }
-
-        // Generate star rating
-        function generateStarRating(rating) {
-            const fullStars = Math.floor(rating);
-            const hasHalfStar = rating % 1 >= 0.5;
-            let stars = '';
-            
-            for (let i = 0; i < fullStars; i++) {
-                stars += '<i class="fas fa-star"></i>';
-            }
-            
-            if (hasHalfStar) {
-                stars += '<i class="fas fa-star-half-alt"></i>';
-            }
-            
-            const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0);
-            for (let i = 0; i < emptyStars; i++) {
-                stars += '<i class="far fa-star"></i>';
-            }
-            
-            return stars;
-        }
-
-        // Show notification
-        function showNotification(message) {
-            notification.textContent = message;
-            notification.style.display = 'block';
-            
-            setTimeout(() => {
-                notification.style.display = 'none';
-            }, 3000);
-        }
+        });
     </script>
 </body>
 </html>

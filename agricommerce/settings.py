@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'ac',
+    #####################
+    #'ac.apps.AcConfig',  # Make sure your app is included
 ]
 
 MIDDLEWARE = [
@@ -48,9 +50,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    #########################
+    'ac.middleware.TransactionAccessMiddleware',
 ]
 
 ROOT_URLCONF = 'agricommerce.urls'
+############################
+AUTH_USER_MODEL = 'ac.User'  # Must match your app name and model
 
 TEMPLATES = [
     {
@@ -84,6 +90,12 @@ DATABASES = {
         'PORT':'3306',
     }
 }
+########### note ##################
+#superuser admin information
+#"username: Group1
+#email: superknowledgekz@gmail.com
+#password: agricommerce
+###############################
 
 
 # Password validation
@@ -120,7 +132,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [BASE_DIR / "ac/static"]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

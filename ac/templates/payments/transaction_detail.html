@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Details</title>
+    <link rel="stylesheet" href="{% static 'css/payments.css' %}">
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .step-marker { 
+            width: 30px; 
+            height: 30px; 
+            background: #ddd; 
+            border-radius: 50%; 
+            margin: 0 auto 10px; 
+            line-height: 30px; 
+        }
+        .active .step-marker { background: #4CAF50; color: white; }
+    </style>
+</head>
+<body>
+    <div class="payment-flow">
+        <h2>Order #{{ transaction.telebirr_reference }}</h2>
+        
+        <div class="transaction-timeline">
+            <div class="timeline-step {% if transaction.status == 'held' %}active{% endif %}">
+                <div class="step-marker">1</div>
+                <div class="step-content">
+                    <h3>Payment Held</h3>
+                    <p>{{ transaction.created_at|date:"M d, Y H:i" }}</p>
+                </div>
+            </div>
+
+            <div class="timeline-step {% if transaction.status == 'shipped' %}active{% endif %}">
+                <div class="step-marker">2</div>
+                <div class="step-content">
+                    <h3>Product Shipped</h3>
+                    {% if transaction.status == 'shipped' %}
+                    <p>Tracking: {{ transaction.shipment.tracking_number }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="timeline-step {% if transaction.status == 'completed' %}active{% endif %}">
+                <div class="step-marker">3</div>
+                <div class="step-content">
+                    <h3>Completed</h3>
+                    {% if transaction.status == 'completed' %}
+                    <p>{{ transaction.updated_at|date:"M d, Y H:i" }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <a href="{% url 'my_account' %}">Back to Account</a>
+    </div>
+</body>
+</html>

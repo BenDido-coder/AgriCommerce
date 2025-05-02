@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Payment Successful</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; padding: 50px; }
+        .success-box { 
+            border: 2px solid #4CAF50; 
+            padding: 25px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            border-radius: 10px;
+        }
+        .reference-number { 
+            color: #4CAF50; 
+            font-size: 1.2em; 
+            margin: 15px 0; 
+        }
+    </style>
+</head>
+<body>
+    <div class="success-box">
+        <h2>🎉 Payment Successful!</h2>
+        <div class="reference-number">
+            Transaction ID: {{ transaction.telebirr_reference }}
+        </div>
+        <p>Status: {{ transaction.get_status_display }}</p>
+        <p>Funds will be automatically released on:<br>
+        {{ transaction.auto_release_date|date:"M d, Y H:i" }}</p>
+        
+        <div style="margin-top: 30px;">
+            <a href="{% url 'products' %}">Continue Shopping</a> | 
+            <a href="{% url 'my_account' %}">View Transactions</a>
+        </div>
+    </div>
+</body>
+</html>

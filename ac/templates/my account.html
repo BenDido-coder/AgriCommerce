@@ -797,9 +797,152 @@
             <!-- Orders Section -->
             <section class="orders-section" id="orders-section">
                 <div class="section-header">
-                    <h2><i class="fas fa-clipboard-list agri-icon"></i> My Orders</h2>
+                    <h2><i class="fas fa-clipboard-list agri-icon"></i> My Orders & Payments</h2>
                 </div>
-
+                <!-- Payment History Section -->
+                <div class="payment-history-container">
+                    <h3><i class="fas fa-money-bill-wave"></i> Payment History</h3>
+                    
+                    <div class="payment-history-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>                           
+                            <tbody>
+                                {% for transaction in user.buyer_transactions.all %}
+                                <tr class="payment-status-{{ transaction.status }}">
+                                    <td>{{ transaction.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <a href="{% url 'transaction_detail' transaction.id %}">
+                                            {{ transaction.product.name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ transaction.amount }}</td>
+                                    <td>
+                                        <span class="status-badge status-{{ transaction.status }}">
+                                            {{ transaction.get_status_display }}
+                                        </span>
+                                    </td>
+                                    
+                                    <td>
+                                        {% if transaction.status == 'held' %}
+                                        <a href="{% url 'confirm_delivery' transaction.id %}" class="payment-action-btn">
+                                            <i class="fas fa-check-circle"></i> Confirm Delivery
+                                        </a>
+                                        {% elif transaction.status == 'shipped' %}
+                                        <a href="#" class="payment-action-btn">
+                                            <i class="fas fa-truck"></i> Track Order
+                                        </a>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="no-transactions">
+                                        <i class="fas fa-money-bill-wave"></i>
+                                        No payment transactions yet
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <style>
+                    .payment-history-container {
+                        margin-top: 2rem;
+                        background: white;
+                        padding: 1.5rem;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+                    }
+                    
+                    .payment-history-table {
+                        overflow-x: auto;
+                        margin-top: 1rem;
+                    }
+                    
+                    .payment-history-table table {
+                        width: 100%;
+                        border-collapse: collapse;
+                    }
+                                        
+                    .payment-history-table th {
+                        background: var(--light-gray);
+                        padding: 12px;
+                        text-align: left;
+                    }
+                    
+                    .payment-history-table td {
+                        padding: 12px;
+                        border-bottom: 1px solid var(--medium-gray);
+                    }
+                    
+                    .status-badge {
+                        padding: 5px 10px;
+                        border-radius: 4px;
+                        font-size: 0.85rem;
+                    }
+                     
+                    .status-held {
+                        background: #FFF3E0;
+                        color: #E65100;
+                    }
+                    
+                    .status-shipped {
+                        background: #E3F2FD;
+                        color: #0D47A1;
+                    }
+                    
+                    .status-completed {
+                        background: #E8F5E9;
+                        color: #1B5E20;
+                    }
+                    
+                    .status-disputed {
+                        background: #FFEBEE;
+                        color: #C62828;
+                    }
+                    
+                    .payment-action-btn {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 5px;
+                        padding: 5px 10px;
+                        background: var(--primary-green);
+                        color: white;
+                        border-radius: 4px;
+                        text-decoration: none;
+                        font-size: 0.85rem;
+                    }
+                    
+                    .payment-action-btn:hover {
+                        background: var(--dark-green);
+                    }
+                    
+                    .no-transactions {
+                        text-align: center;
+                        padding: 2rem;
+                        color: var(--dark-gray);
+                    }
+                    
+                    .no-transactions i {
+                        font-size: 1.5rem;
+                        display: block;
+                        margin-bottom: 10px;
+                        color: var(--primary-green);
+                    }
+                </style>
+            </section>
+        </main>
+<!--
                 <div class="empty-state" style="text-align: center; padding: 40px;">
                     <i class="fas fa-clipboard-list" style="font-size: 48px; color: var(--primary-green); margin-bottom: 20px;"></i>
                     <h3>No Orders Yet</h3>
@@ -807,9 +950,9 @@
                 </div>
             </section>
         </main>
-
+ -->
         <footer class="account-footer">
-            <p>&copy; 2023 AgriMarket. Growing connections between farmers and buyers.</p>
+            <p>&copy; 2025 AgriCommerce. A field to fork freshness.</p>
             <div class="footer-links">
                 <a href="#"><i class="fas fa-book"></i> Farming Resources</a>
                 <a href="#"><i class="fas fa-question-circle"></i> Help Center</a>
@@ -919,6 +1062,5 @@
     <script src="{% static 'css/my account.js'%}"></script>
     <script src="{% static 'css/add.js'%}"></script>
     <script src="{% static 'css/edit.js'%}"></script>
-   
 </body>
 </html>

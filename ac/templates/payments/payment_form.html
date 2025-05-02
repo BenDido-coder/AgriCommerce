@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Telebirr Payment Simulation</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .payment-container { border: 2px dashed #4CAF50; padding: 25px; margin: 2rem auto; }
+        .simulation-notice { color: #ff0000; font-weight: bold; margin-bottom: 15px; }
+        .product-details { margin: 20px 0; padding: 15px; background: #f5f5f5; }
+        .confirm-btn { 
+            background: #4CAF50; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-container">
+        <div class="simulation-notice">SIMULATION MODE - TELEBIRR INTEGRATION</div>
+        
+        <div class="product-details">
+            <h2>{{ product.name }}</h2>
+            <p>Price: {{ product.price }}</p>
+            <p>Seller: {{ product.seller.username }}</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="confirm-btn">Confirm Payment</button>
+        </form>
+        
+        <div style="margin-top: 20px;">
+            <a href="{% url 'products' %}">Back to Products</a>
+        </div>
+    </div>
+</body>
+</html>
