@@ -12,8 +12,11 @@ urlpatterns = [
     ##################################
     path('pay/<int:product_id>/', views.initiate_payment, name='initiate_payment'),
     path('payment/success/<int:transaction_id>/', views.payment_success, name='payment_success'),
-    path('transaction/confirm/<int:transaction_id>/', views.confirm_delivery, name='confirm_delivery'),
-    path('transaction/<int:transaction_id>/', views.transaction_detail, name='transaction_detail'),
     path('profile/<str:username>/', views.user_profile, name='user-profile'),
-
+    path('transaction/<int:transaction_id>/', views.transaction_detail, name='transaction_detail'),
+    path('confirm-delivery/<int:transaction_id>/', views.confirm_delivery, name='confirm_delivery'),
+    path('test-profile/', views.test_profile, name='test-profile'),
+    path('test-admin/', views.test_admin_dashboard),
+    path('test-supplier/', views.test_supplier_dashboard),
 ]
+

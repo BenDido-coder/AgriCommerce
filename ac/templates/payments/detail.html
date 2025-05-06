@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="transaction-card">
+    <h2>Order #{{ transaction.id }}</h2>
+    <div class="status-badge status-{{ transaction.status }}">
+        {{ transaction.get_status_display }}
+    </div>
+    
+    <div class="transaction-info">
+        <p>Product: {{ transaction.product.name }}</p>
+        <p>Amount: {{ transaction.amount }} ETB</p>
+        <p>Seller: {{ transaction.seller.username }}</p>
+        <p>Initiated: {{ transaction.created_at|date:"M d, Y H:i" }}</p>
+    </div>
+    
+    {% if transaction.status == 'held' %}
+    <a href="{% url 'confirm_delivery' transaction.id %}" class="btn-confirm">
+        <i class="fas fa-check-circle"></i> Confirm Delivery
+    </a>
+    {% endif %}
+</div>
+{% endblock %}

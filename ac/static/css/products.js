@@ -406,6 +406,29 @@ function addToCart(productId, quantity = 1) {
         });
     }
     
+
+
+// Inside your product rendering logic
+function renderProduct(product) {
+    return `
+        <div class="product-card">
+            <!-- Existing product content -->
+            <button class="whatsapp-btn" 
+                    onclick="openWhatsApp('${product.farmer_phone}', 
+                            'Hi ${product.farmer_name}, I'm interested in your ${product.name} (${product.price}ETB)')">
+                <i class="fab fa-whatsapp"></i> Contact Farmer
+            </button>
+        </div>
+    `;
+}
+
+// Add this helper function at the top of products.js
+function openWhatsApp(phone, message) {
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
+}
+
+
     // Save to localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
     updateCartCount();

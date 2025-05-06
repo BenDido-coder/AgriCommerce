@@ -1,10 +1,12 @@
+from decimal import Decimal
 from django.db import models
 from django.utils import timezone
-from django.contrib.auth.models import AbstractUser, Group, Permission
-from django.core.validators import MinValueValidator, MaxValueValidator
+from django.contrib.auth.models import AbstractUser
+from django.core.validators import MinValueValidator, MaxValueValidator, RegexValidator
+from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
-    ROLES = [
+    ROLE_CHOICES = [
         ('FARMER', 'Farmer'),
         ('SUPPLIER', 'Supplier/Distributor'),
         ('BUYER', 'Buyer'),
@@ -12,44 +14,53 @@ class User(AbstractUser):
         ('ADMIN', 'Admin'),
     ]
     
-    # Role Field (replaces is_farmer)
+    # Fixed role field with proper choices reference
     role = models.CharField(
         max_length=20,
-        choices=ROLES,
+        choices=ROLE_CHOICES,
         default='BUYER'
-
     )
-    # Contact Information
-    phone = models.CharField(max_length=15, unique=True)
-    
-    # Financial Information
+
+    # Phone field with validation
+    phone = models.CharField(
+        max_length=20,
+        validators=[RegexValidator(
+            regex=r'^\+?1?\d{9,15}$',
+            message="Phone number must be in international format. E.g.: +251912345678"
+        )],
+        unique=True,
+        blank=True,
+        null=True
+    )
+
+    # Wallet balance
     wallet_balance = models.DecimalField(
         max_digits=10,
         decimal_places=2,
-        default=0,
+        default=0.00,
         validators=[MinValueValidator(0)]
     )
 
-    # Permissions Setup
-    """"
+    # Remove duplicate role field and fix commented sections
     groups = models.ManyToManyField(
-        Group,
+        'auth.Group',
         verbose_name='groups',
         blank=True,
         related_name="ac_user_groups",
         related_query_name="user",
     )
     user_permissions = models.ManyToManyField(
-        Permission,
+        'auth.Permission',
         verbose_name='user permissions',
         blank=True,
         related_name="ac_user_permissions",
         related_query_name="user",
     )
-    """
 
-    # Wallet Methods
+    # Wallet methods
     def deduct_wallet(self, amount):
+        if isinstance(amount, float):
+            amount = Decimal(str(amount))
         if self.wallet_balance >= amount:
             self.wallet_balance -= amount
             self.save(update_fields=['wallet_balance'])
@@ -57,17 +68,17 @@ class User(AbstractUser):
         return False
 
     def add_wallet(self, amount):
-        if amount > 0:
+        if isinstance(amount, float):
+            amount = Decimal(str(amount))
+        if amount > Decimal('0'):
             self.wallet_balance += amount
             self.save(update_fields=['wallet_balance'])
             return True
         return False
 
-    # Display Methods
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
 
-    # Permission Shortcuts
     def is_admin_user(self):
         return self.role == 'ADMIN' or self.is_superuser
 
@@ -90,7 +101,7 @@ class FarmerProfile(models.Model):
         return f"{self.farm_name} ({self.location})"
 
 class Product(models.Model):
-    CATEGORIES = [
+    CATEGORY_CHOICES = [
         ('CROP', 'Crops'),
         ('LIVESTOCK', 'Livestock'),
         ('EQUIPMENT', 'Equipment'),
@@ -110,7 +121,7 @@ class Product(models.Model):
         related_name='products',
         limit_choices_to={'role__in': ['FARMER', 'SUPPLIER']}
     )
-    category = models.CharField(max_length=20, choices=CATEGORIES, default='CROP')
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='CROP')
     stock_quantity = models.PositiveIntegerField(default=0)
     harvest_date = models.DateField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -155,6 +166,16 @@ class EscrowTransaction(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+        
+    def clean(self):
+        if self.buyer == self.seller:
+            raise ValidationError("Buyer and seller cannot be the same")
+        if self.amount <= 0:
+            raise ValidationError("Amount must be positive")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
 class TransactionUpdate(models.Model):
     transaction = models.ForeignKey(EscrowTransaction, on_delete=models.CASCADE, related_name='updates')

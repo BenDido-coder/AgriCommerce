@@ -3,10 +3,22 @@ from django.contrib import admin
 from .models import User, FarmerProfile, Product, EscrowTransaction, TransactionUpdate
 from django.contrib.auth.admin import UserAdmin
 from .forms import CustomUserCreationForm
-
+from django.utils.html import format_html
 # Unregister if already registered (safe guard)
 if admin.site.is_registered(User):
     admin.site.unregister(User)
+
+
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'phone', 'role', 'whatsapp_link')
+    
+    def whatsapp_link(self, obj):
+        return format_html(
+            '<a class="button" href="https://wa.me/{}?text=Hello%20{}%20(AgriCommerce%20Admin)" target="_blank">WhatsApp</a>',
+            obj.phone, obj.username
+        )
+    whatsapp_link.short_description = 'Contact'
+
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):

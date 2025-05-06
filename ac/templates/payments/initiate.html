@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="payment-container">
+    <h2>Confirm Purchase: {{ product.name }}</h2>
+    <div class="product-info">
+        <p>Price: {{ product.price }} ETB</p>
+        <p>Seller: {{ product.seller.username }}</p>
+    </div>
+    
+    {% if user.wallet_balance >= product.price %}
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn-pay">Confirm Payment</button>
+    </form>
+    {% else %}
+    <div class="alert">
+        Insufficient balance! <a href="{% url 'wallet_topup' %}">Top Up Wallet</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

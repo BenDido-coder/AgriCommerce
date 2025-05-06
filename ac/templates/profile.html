@@ -1,10 +1,51 @@
-<h1>{{ user.username }}'s Profile</h1>
-<p>Role: {{ user.get_role_display }}</p>
-<p>Phone: {{ user.phone }}</p>
-<p>Wallet Balance: {{ user.wallet_balance }}</p>
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user.username }}'s Profile</title>
+    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="{% static 'css/whatsapp.js' %}"></script>
+</head>
+<body>
+    <div class="profile-container">
+        <h1>{{ user.username }}'s Profile</h1>
+        <div class="profile-info">
+            <p><strong>Role:</strong> {{ user.get_role_display }}</p>
+            <p><strong>Phone:</strong> {{ user.phone }}</p>
+            <p><strong>Wallet Balance:</strong> {{ user.wallet_balance }}</p>
+        </div>
 
-{% if farmer_profile %}
-<h2>Farm Details</h2>
-<p>Farm Name: {{ farmer_profile.farm_name }}</p>
-<p>Location: {{ farmer_profile.location }}</p>
-{% endif %}
+        <!-- WhatsApp Chat Button -->
+        <div class="whatsapp-section">
+            <button class="whatsapp-btn" 
+                    onclick="openWhatsApp('{{ user.phone }}', 'Hi {{ user.username|escapejs }}, I saw your profile on AgriCommerce')">
+                <i class="fab fa-whatsapp"></i> Chat via WhatsApp
+            </button>
+        </div>
+
+        <!-- Farm Details -->
+        {% if farmer_profile %}
+        <div class="farm-details">
+            <h2>Farm Details</h2>
+            <p><strong>Farm Name:</strong> {{ farmer_profile.farm_name }}</p>
+            <p><strong>Location:</strong> {{ farmer_profile.location }}</p>
+        </div>
+        {% endif %}
+
+        <!-- Test Buttons (Temporary) -->
+        <div class="test-section">
+            <h3>Test WhatsApp Links:</h3>
+            <button class="test-btn" 
+                    onclick="openWhatsApp('+251964802311', 'Test message from Farmer')">
+                Test Farmer Chat
+            </button>
+            <button class="test-btn" 
+                    onclick="openWhatsApp('+251713002362', 'Test message from Buyer')">
+                Test Buyer Chat
+            </button>
+        </div>
+    </div>
+</body>
+</html>

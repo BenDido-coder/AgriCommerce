@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,8 +25,11 @@ SECRET_KEY = 'django-insecure-03yxt(kwu%2)jmqm&((8cm)ghvjn1=tzb#v+4ex3*6v%ct%7da
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
+#DEBUG = False
+#ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+#ALLOWED_HOSTS = ['*']
 
-ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -82,7 +86,7 @@ WSGI_APPLICATION = 'agricommerce.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
+       'ENGINE': 'mysql.connector.django',
         'NAME': 'agricommerce',
         'USER':'Group1',
         'PASSWORD':'02062814#afihimz',
@@ -93,7 +97,7 @@ DATABASES = {
 ########### note ##################
 #superuser admin information
 #"username: Group1
-#email: superknowledgekz@gmail.com
+#email: group1@agri.com
 #password: agricommerce
 ###############################
 
@@ -131,14 +135,18 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+""""
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / "ac/static"]
-
+"""
+STATIC_URL = '/static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'ac/static'), # Path to your static folder
+]
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-
+DEBUG_PHONE_NUMBER = '+251900000000'  # Use this in development
 

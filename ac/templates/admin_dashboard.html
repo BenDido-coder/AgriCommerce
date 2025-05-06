@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="{% static 'css/whatsapp.js' %}"></script>
+</head>
+<body>
+    <div class="admin-container">
+        <h1>Admin Communications</h1>
+        
+        <!-- Message All Users -->
+        <div class="admin-section">
+            <h2>Broadcast Message</h2>
+            <button class="whatsapp-btn" 
+                    onclick="openWhatsApp('+251900000000', 'Important update from AgriCommerce Admin')">
+                <i class="fas fa-bullhorn"></i> Broadcast to All Users
+            </button>
+        </div>
+
+        <!-- Individual User Messaging -->
+        <div class="user-list">
+            {% for user in users %}
+            <div class="user-card">
+                <h3>{{ user.username }} ({{ user.get_role_display }})</h3>
+                <button class="whatsapp-btn"
+                        onclick="openWhatsApp('{{ user.phone }}', 'Hello {{ user.username }} from AgriCommerce Support')">
+                    <i class="fab fa-whatsapp"></i> Message User
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
