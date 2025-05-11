@@ -1,0 +1,28 @@
+/* Payments styling */
+.payment-flow {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .telebirr-simulated {
+    border: 2px dashed #FF6D00;
+    padding: 25px;
+    margin: 20px 0;
+    background: #FFF3E0;
+  }
+  
+  .transaction-timeline {
+    display: flex;
+    justify-content: space-between;
+    margin: 2rem 0;
+  }
+  
+  .timeline-step {
+    flex: 1;
+    text-align: center;
+    position: relative;
+  }

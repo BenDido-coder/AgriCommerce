@@ -1,106 +1,87 @@
 {% load static %}
+{% load custom_filters %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agricommerce - Register</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Agricommerce - Sign Up</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Playfair+Display:wght@400;600&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'css/login_signup.css'%}">
+    <link rel="stylesheet" href="{% static 'ac/css/login_signup.css' %}">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <div class="logo">
-                <img src="{% static 'images/logo.jpg'%}" alt="AgriTrade Logo">
-                <h1>Agri-<span>commerce</span></h1>
-            </div>
-        </header>
+<div class="container">
+    <header>
+        <div class="logo">
+            <img src="{% static 'ac/images/logo.jpg' %}" alt="AgriCommerce Logo">
+            <h1>Agri-<span>commerce</span></h1>
+        </div>
+    </header>
 
-        <div class="auth-container">
-            <div class="auth-box">
-                <div class="auth-header">
-                    <h2>Welcome to Agri-commerce</h2>
-                    <p>Connect with farmers and buyers across the country</p>
-                </div>
-                
-                <div class="auth-tabs">
-                    <a href="{% url 'login'%}" class="auth-tab">Login</a>
-                    <div class="auth-tab active">Register</div>
-                </div>
-                
-                <div class="auth-content">
-                    <!-- Registration Form -->
-                    <form id="register-form" class="auth-form">
-                        
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <h2>Create your Account</h2>
+                <p>Join the agricultural marketplace and start trading!</p>
+            </div>
+
+            <div class="auth-tabs">
+                <a href="{% url 'login' %}" class="auth-tab">Login</a>
+                <div class="auth-tab active">Register</div>
+            </div>
+
+            <div class="auth-content">
+                <form method="POST" enctype="multipart/form-data" class="auth-form" id="signup-form">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
                         <div class="form-group">
-                            <label for="register-name">First Name</label>
-                            <input type="text" id="register-name" class="form-control" placeholder="Enter your first name" required>
-                            <i class="fas fa-user input-icon"></i>
-                            <div class="error-message">Please enter your first name</div>
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field|add_class:"form-control" }}
+                            <i class="fas fa-circle-notch input-icon"></i>
+                            {% if field.errors %}
+                                <div class="error-message">{{ field.errors }}</div>
+                            {% endif %}
                         </div>
-                        <div class="form-group">
-                            <label for="register-name">Last Name</label>
-                            <input type="text" id="register-name" class="form-control" placeholder="Enter your last name" required>
-                            <i class="fas fa-user input-icon"></i>
-                            <div class="error-message">Please enter your last name</div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn">Sign Up</button>
+
+                    <div class="divider">
+                        <span>OR</span>
+                    </div>
+
+                    <div class="social-login">
+                        <div class="social-btn facebook" title="Sign up with Facebook">
+                            <i class="fab fa-facebook-f"></i>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="register-email">Email Address</label>
-                            <input type="email" id="register-email" class="form-control" placeholder="Enter your email" required>
-                            <i class="fas fa-envelope input-icon"></i>
-                            <div class="error-message">Please enter a valid email</div>
+                        <div class="social-btn google" title="Sign up with Google">
+                            <i class="fab fa-google"></i>
                         </div>
-                        
-                        <div class="form-group">
-                            <label for="register-phone">Phone Number</label>
-                            <input type="tel" id="register-phone" class="form-control" placeholder="Enter your phone number" required>
-                            <i class="fas fa-phone input-icon"></i>
-                            <div class="error-message">Please enter a valid phone number</div>
+                        <div class="social-btn twitter" title="Sign up with Twitter">
+                            <i class="fab fa-twitter"></i>
                         </div>
-                        <div class="form-group">
-                            <label for="register-role">I am a:</label>
-                            <select id="register-role" class="form-control" required>
-                                <option value=""></option>
-                                <option value="farmer">Farmer/Producer</option>
-                                <option value="buyer">Buyer/Retailer</option>
-                                <option value="distributor">Distributor</option>
-                                <option value="Logistics/">Logistics</option>
-                            </select>
-                            <div class="error-message">Please select your role</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="register-password">Password</label>
-                            <input type="password" id="register-password" class="form-control" placeholder="Create a password" required>
-                            <i class="fas fa-lock input-icon"></i>
-                            <div class="error-message">Password must be at least 8 characters</div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="register-confirm">Confirm Password</label>
-                            <input type="password" id="register-confirm" class="form-control" placeholder="Confirm your password" required>
-                            <i class="fas fa-lock input-icon"></i>
-                            <div class="error-message">Passwords don't match</div>
-                        </div>
-                        
-                        <button type="submit" class="btn">Create Account</button>
-                        
-                        <div class="terms">
-                            By creating an account, you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>
-                        </div>
-                        
-                        <div class="auth-footer">
-                            Already have an account? <a href="{% url 'login'%}">Log in</a>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+
+                    <div class="auth-footer">
+                        Already have an account? <a href="{% url 'login' %}">Login</a>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
+</div>
 
-    <script src="{% static 'css/login_signup.js'%}"></script>
+<script src="{% static 'ac/js/login_signup.js' %}"></script>
 </body>
 </html>

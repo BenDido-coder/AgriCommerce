@@ -1,0 +1,16 @@
+<div class="products-wrapper">
+    {% if products %}
+        {% for product in products %}
+            <div class="product-card">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                <h4>{{ product.name }}</h4>
+                <p>{{ product.description|truncatewords:15 }}</p>
+                <p>Price: {{ product.price }} ETB</p>
+                <a href="{% url 'edit_product' product.id %}" class="btn">Edit</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>You haven't listed any products yet.</p>
+    {% endif %}
+</div>
+

@@ -5,20 +5,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmers' Guide | AgriCommerce</title>
-    <link rel="stylesheet" href="{% static 'css/blog.css'%}">
+    <link rel="stylesheet" href="{% static 'ac/css/blog.css'%}">
 </head>
 <body>
     <header>
         <div class="container header-content">
             <div class="logo">
-                <img src="{% static 'images/logo.jpg'%}" alt="AgriTrade Logo">
+                <img src="{% static 'ac/images/logo.jpg'%}" alt="AgriCommerce Logo">
                 <h1>Agri-<span>commerce</span></h1>
             </div>
             <nav>
                 <ul>
                     <li><a href="{% url 'home'%}">Home</a></li>
                     <li><a href="{% url 'products'%}">Products</a></li>
-                    <li><a href="{% url 'about us'%}">About</a></li>
+                    <li><a href="{% url 'about_us'%}">About</a></li>
                 </ul>
             </nav>
         </div>
@@ -212,7 +212,7 @@
                 <a href="{% url 'home'%}">Home</a>
                 <a href="{% url 'products'%}">Products</a>
                 <a href="#">Blog</a>
-                <a href="{% url 'about us'%}">About Us</a>
+                <a href="{% url 'about_us'%}">About Us</a>
                 
             </div>
             <div class="social-icons">
@@ -221,12 +221,12 @@
                 <a href="#"><i class="fab fa-instagram"></i></a>
                 <a href="#"><i class="fab fa-youtube"></i></a>
             </div>
-            <p>&copy; 2023 AgriCommerce. All rights reserved.</p>
+            <p>&copy; 2025 AgriCommerce. All rights reserved.</p>
         </div>
     </footer>
     
     <!-- Font Awesome for icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="css/blog.js"></script>
+    <script src="ac/js/blog.js"></script>
 </body>
 </html>

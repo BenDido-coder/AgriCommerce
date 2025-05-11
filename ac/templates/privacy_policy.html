@@ -1,0 +1,82 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - AgriCommerce</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'ac/css/style.css' %}">
+</head>
+<body>
+    <nav>
+        <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
+        <a href="{% url 'products' %}" {% if request.path == '/products/' %}class="active"{% endif %}>Products</a>
+        <a href="{% url 'terms_of_service' %}" {% if request.path == '/terms-of-service/' %}class="active"{% endif %}>Terms</a>
+        <a href="{% url 'privacy_policy' %}" {% if request.path == '/privacy-policy/' %}class="active"{% endif %}>Privacy</a>
+    </nav>
+
+
+    <div class="container legal-container">
+        <h1>Privacy Policy</h1>
+        <p>Last Updated: May 8, 2025</p>
+
+        <div class="legal-section">
+            <h2>Data Collection (GDPR Article 4)</h2>
+            <p>We collect:</p>
+            <ul class="legal-list">
+                <li>Contact information (email/phone)</li>
+                <li>Transaction records</li>
+                <li>Device data (IP address, browser type)</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>Data Protection</h2>
+            <p>Implements AES-256 encryption and OWASP security standards. Data stored in AWS Africa (Cape Town) Region.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>User Rights (CCPA/GDPR)</h2>
+            <ul class="legal-list">
+                <li>Right to access personal data</li>
+                <li>Right to data portability</li>
+                <li>Right to be forgotten</li>
+            </ul>
+        </div>
+
+        <footer>
+            <div class="footer-content">
+                <!-- Phone -->
+                <a href="tel:+251915451380" class="footer-icon">
+                    <i class="fas fa-phone"></i>
+                    <span>+251 915 451 380</span>
+                </a>
+        
+                <!-- Email -->
+                <a href="mailto:groupi@agri.com" class="footer-icon">
+                    <i class="fas fa-envelope"></i>
+                    <span>groupi@agri.com</span>
+                </a>
+        
+                <!-- Address -->
+                <div class="footer-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>GBBSS, Akaki-Kality, Addis Ababa</span>
+                </div>
+            </div>
+        
+            <div class="copyright">
+                <p>© 2025 AgriCommerce. A field to fork freshness.</p>
+                <div class="footer-links">
+                    <a href="/resources/">Farming Resources</a>
+                    <a href="/help/">Help Center</a>
+                    <a href="/contact/">Contact Support</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{% static 'ac/js/script.js' %}"></script>
+</body>
+</html>

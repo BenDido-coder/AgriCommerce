@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ user.username }}'s Profile</title>
-    <link rel="stylesheet" href="{% static 'css/profile.css' %}">
+    <link rel="stylesheet" href="{% static 'ac/css/profile.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="{% static 'css/whatsapp.js' %}"></script>
+    <script src="{% static 'ac/js/whatsapp.js' %}"></script>
 </head>
 <body>
     <div class="profile-container">
@@ -32,7 +32,30 @@
             <p><strong>Farm Name:</strong> {{ farmer_profile.farm_name }}</p>
             <p><strong>Location:</strong> {{ farmer_profile.location }}</p>
         </div>
-        {% endif %}
+        {% endif %}  
+        <!-- In the farm-info-modal -->
+        <form method="POST" id="profile-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label>First Name</label>
+                <input type="text" name="first_name" value="{{ user.first_name }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" name="last_name" value="{{ user.last_name }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" value="{{ user.email }}" class="form-control">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="tel" name="phone" value="{{ user.phone }}" class="form-control">
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+        </form>
+        
+
 
         <!-- Test Buttons (Temporary) -->
         <div class="test-section">

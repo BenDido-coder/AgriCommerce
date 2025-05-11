@@ -1,0 +1,79 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriCommerce - Farming Resources</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'ac/css/style.css' %}">
+</head>
+<body>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/products/">Products</a>
+        <a href="/blog/">Blog</a>
+        <a href="/resources/" class="active">Resources</a>
+        <a href="/contact/">Contact</a>
+    </nav>
+
+    <div class="container">
+        <h1>Farming Resources</h1>
+        
+        <!-- Agricultural Tips -->
+        <div class="section">
+            <h2>Best Practices</h2>
+            <div class="resource-card">
+                <h3>Crop Rotation Guide</h3>
+                <p>Learn how to maximize yield with sustainable practices.</p>
+            </div>
+            <div class="resource-card">
+                <h3>Weather Advisory</h3>
+                <p>Real-time weather updates for planning irrigation.</p>
+            </div>
+        </div>
+
+        <!-- External Links -->
+        <div class="section">
+            <h2>Useful Links</h2>
+            <ul>
+                <li><a href="https://www.worldbank.org">World Bank Agricultural Data</a></li>
+                <li><a href="https://land.igad.int">IGAD Land Resources</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-content">
+            <!-- Phone -->
+            <a href="tel:+251915451380" class="footer-icon">
+                <i class="fas fa-phone"></i>
+                <span>+251 915 451 380</span>
+            </a>
+    
+            <!-- Email -->
+            <a href="mailto:groupi@agri.com" class="footer-icon">
+                <i class="fas fa-envelope"></i>
+                <span>groupi@agri.com</span>
+            </a>
+    
+            <!-- Address -->
+            <div class="footer-icon">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>GBBSS, Akaki-Kality, Addis Ababa</span>
+            </div>
+        </div>
+    
+        <div class="copyright">
+            <p>© 2025 AgriCommerce. A field to fork freshness.</p>
+            <div class="footer-links">
+                <a href="/resources/">Farming Resources</a>
+                <a href="/help/">Help Center</a>
+                <a href="/contact/">Contact Support</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{% static 'ac/js/script.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - AgriCommerce</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'ac/css/style.css' %}">
+</head>
+<body>
+    <nav>
+        <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
+        <a href="{% url 'products' %}" {% if request.path == '/products/' %}class="active"{% endif %}>Products</a>
+        <a href="{% url 'terms_of_service' %}" {% if request.path == '/terms-of-service/' %}class="active"{% endif %}>Terms</a>
+        <a href="{% url 'privacy_policy' %}" {% if request.path == '/privacy-policy/' %}class="active"{% endif %}>Privacy</a>
+    </nav>
+
+    <div class="container legal-container">
+        <h1>Terms of Service</h1>
+        <p>Effective Date: May 8, 2025</p>
+
+        <div class="legal-section">
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing AgriCommerce platform, you agree to comply with UN Electronic Commerce Guidelines and Ethiopian Digital Commerce Proclamation No. 980/2016.</p>
+        </div>
+
+        <div class="legal-section">
+            <h2>2. User Responsibilities</h2>
+            <ul class="legal-list">
+                <li>Accurate product listings</li>
+                <li>Prohibition of counterfeit agricultural inputs</li>
+                <li>Compliance with export/import regulations</li>
+            </ul>
+        </div>
+
+        <div class="legal-section">
+            <h2>3. Payments & Transactions</h2>
+            <p>All transactions comply with PCI DSS standards. Chargebacks will be handled per National Bank of Ethiopia directives.</p>
+        </div>
+
+        <!-- Include full footer from previous implementation -->
+        <footer>
+            <div class="footer-content">
+                <!-- Phone -->
+                <a href="tel:+251915451380" class="footer-icon">
+                    <i class="fas fa-phone"></i>
+                    <span>+251 915 451 380</span>
+                </a>
+        
+                <!-- Email -->
+                <a href="mailto:groupi@agri.com" class="footer-icon">
+                    <i class="fas fa-envelope"></i>
+                    <span>groupi@agri.com</span>
+                </a>
+        
+                <!-- Address -->
+                <div class="footer-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>GBBSS, Akaki-Kality, Addis Ababa</span>
+                </div>
+            </div>
+        
+            <div class="copyright">
+                <p>© 2025 AgriCommerce. A field to fork freshness.</p>
+                <div class="footer-links">
+                    <a href="/resources/">Farming Resources</a>
+                    <a href="/help/">Help Center</a>
+                    <a href="/contact/">Contact Support</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{% static 'ac/js/script.js' %}"></script>
+</body>
+</html>

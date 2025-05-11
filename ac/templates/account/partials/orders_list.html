@@ -1,0 +1,15 @@
+<div class="orders-wrapper">
+    {% if transactions %}
+        {% for order in transactions %}
+            <div class="order-card">
+                <h4>Order #{{ order.id }}</h4>
+                <p>Product: {{ order.product.name }}</p>
+                <p>Buyer: {{ order.buyer.get_full_name }}</p>
+                <p>Status: {{ order.status }}</p>
+                <p>Date: {{ order.created_at|date:'Y-m-d' }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No orders yet.</p>
+    {% endif %}
+</div>
