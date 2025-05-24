@@ -1,36 +1,101 @@
+{% extends 'base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="{% static 'ac/css/admin.css' %}">
-    <script src="{% static 'ac/js/whatsapp.js' %}"></script>
-</head>
-<body>
-    <div class="admin-container">
-        <h1>Admin Communications</h1>
-        
-        <!-- Message All Users -->
-        <div class="admin-section">
-            <h2>Broadcast Message</h2>
-            <button class="whatsapp-btn" 
-                    onclick="openWhatsApp('+251900000000', 'Important update from AgriCommerce Admin')">
-                <i class="fas fa-bullhorn"></i> Broadcast to All Users
-            </button>
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'ac/css/admin.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <div class="container-fluid">
+        <!-- Broadcast Section -->
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Admin Communications</h5>
+            </div>
+            <div class="card-body">
+                <div class="broadcast-section">
+                    <h3>Broadcast Message</h3>
+                    <div class="broadcast-options">
+                        <button class="btn btn-whatsapp" 
+                                onclick="broadcastToGroup('+251900000000', 'Important Update')">
+                            <i class="fab fa-whatsapp"></i> Broadcast to All Users
+                        </button>
+                        <button class="btn btn-email" data-bs-toggle="modal" data-bs-target="#emailModal">
+                            <i class="fas fa-envelope"></i> Send Email Broadcast
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <!-- Individual User Messaging -->
-        <div class="user-list">
-            {% for user in users %}
-            <div class="user-card">
-                <h3>{{ user.username }} ({{ user.get_role_display }})</h3>
-                <button class="whatsapp-btn"
-                        onclick="openWhatsApp('{{ user.phone }}', 'Hello {{ user.username }} from AgriCommerce Support')">
-                    <i class="fab fa-whatsapp"></i> Message User
-                </button>
+        <!-- User Management -->
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">User Management</h5>
             </div>
-            {% endfor %}
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Contact</th>
+                                <th>Role</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td>{{ user.get_full_name }}</td>
+                                <td>
+                                    <div class="contact-info">
+                                        <div>{{ user.email }}</div>
+                                        <div>{{ user.phone }}</div>
+                                    </div>
+                                </td>
+                                <td>{{ user.get_user_type_display }}</td>
+                                <td>
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-whatsapp"
+                                            onclick="openWhatsApp('{{ user.phone }}', 'Admin Message')">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</body>
-</html>
+</div>
+
+<!-- Email Modal -->
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Email Broadcast</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="emailForm">
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-control" rows="5" required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Send Email</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

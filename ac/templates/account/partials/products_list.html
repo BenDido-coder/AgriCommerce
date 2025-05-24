@@ -1,16 +1,32 @@
 <div class="products-wrapper">
-    {% if products %}
-        {% for product in products %}
-            <div class="product-card">
-                <img src="{{ product.image.url }}" alt="{{ product.name }}">
-                <h4>{{ product.name }}</h4>
-                <p>{{ product.description|truncatewords:15 }}</p>
-                <p>Price: {{ product.price }} ETB</p>
-                <a href="{% url 'edit_product' product.id %}" class="btn">Edit</a>
-            </div>
-        {% endfor %}
-    {% else %}
-        <p>You haven't listed any products yet.</p>
-    {% endif %}
-</div>
+  {% if products %}
+      {% for product in products %}
+          <div class="product-card">
+              <img src="{{ product.image.url }}" alt="{{ product.name }}">
+              <h4>{{ product.name }}</h4>
+              <p>{{ product.description|truncatewords:15 }}</p>
+              <p>Price: {{ product.price }} ETB</p>
+              
+              <div class="product-actions">
+                  {% if show_buy_buttons %}
+                      <a href="{% url 'initiate_payment' product.id %}" class="btn-buy">Buy Now</a>
 
+                      <button class="btn-whatsapp" 
+                              onclick="openWhatsApp('{{ product.seller.phone }}', 
+                                       'Regarding {{ product.name }} ({{ product.price }} ETB)')">
+                          <i class="fab fa-whatsapp"></i>
+                      </button>
+                  {% endif %}
+                  
+                  {% if show_edit_buttons %}
+                      <a href="{% url 'product_edit' product.id %}" class="btn-edit">
+                          <i class="fas fa-edit"></i> Edit
+                      </a>
+                  {% endif %}
+              </div>
+          </div>
+      {% endfor %}
+  {% else %}
+      <p>You haven't listed any products yet.</p>
+  {% endif %}
+</div>

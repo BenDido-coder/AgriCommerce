@@ -6,6 +6,100 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Farmers' Guide | AgriCommerce</title>
     <link rel="stylesheet" href="{% static 'ac/css/blog.css'%}">
+    <style>
+        /* Additional styles for new interactive elements */
+        .video-container {
+            margin: 30px 0;
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+        }
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .ph-checker {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .ph-checker h3 {
+            margin-top: 0;
+            color: #2c7d3f;
+        }
+        .ph-checker input {
+            padding: 10px;
+            width: 100%;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .ph-checker button {
+            background-color: #2c7d3f;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .ph-checker button:hover {
+            background-color: #236532;
+        }
+        .ph-result {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .interactive-table {
+            cursor: pointer;
+        }
+        .interactive-table tr:hover {
+            background-color: #f5f5f5;
+        }
+        .accordion {
+            background-color: #f8f9fa;
+            color: #333;
+            cursor: pointer;
+            padding: 15px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            transition: 0.4s;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .active, .accordion:hover {
+            background-color: #e9ecef;
+        }
+        .panel {
+            padding: 0 18px;
+            background-color: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.2s ease-out;
+            border-radius: 0 0 4px 4px;
+        }
+        .read-more {
+            color: #2c7d3f;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .hidden-content {
+            display: none;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -17,7 +111,7 @@
             <nav>
                 <ul>
                     <li><a href="{% url 'home'%}">Home</a></li>
-                    <li><a href="{% url 'products'%}">Products</a></li>
+                    <li><a href="{% url 'product_list'%}">Products</a></li>
                     <li><a href="{% url 'about_us'%}">About</a></li>
                 </ul>
             </nav>
@@ -36,6 +130,10 @@
             <h2>The Complete Guide to Agricultural Essentials</h2>
             <p>Successful farming requires understanding several key factors that influence crop growth and yield. This comprehensive guide covers the essential elements every farmer needs to consider for optimal agricultural productivity.</p>
             
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/O_rPp_sZJj0?si=ozLL2L6RwAWUB7TV&amp;start=41" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            
             <h3>1. Soil Requirements for Different Crops</h3>
             <p>The foundation of successful agriculture lies in understanding your soil. Different crops thrive in different soil types:</p>
             
@@ -46,26 +144,38 @@
                 <li><strong>Silty Soil:</strong> Fertile and holds moisture, excellent for most crops especially when mixed with organic matter.</li>
             </ul>
             
+            <div class="ph-checker">
+                <h3>Soil pH Checker</h3>
+                <p>Enter your soil's pH value to check if it's suitable for most crops:</p>
+                <input type="number" id="phValue" min="0" max="14" step="0.1" placeholder="Enter pH value (0-14)">
+                <button onclick="checkPH()">Check pH</button>
+                <div id="phResult" class="ph-result"></div>
+            </div>
+            
             <p>Always conduct a soil test to determine pH levels and nutrient content before planting. Most crops prefer a pH between 6.0 and 7.0.</p>
             
             <h3>2. Fertilizer Selection and Application</h3>
             <p>Proper fertilization is crucial for healthy plant growth and maximum yield. Here's what farmers need to know:</p>
             
-            <h4>Organic Fertilizers:</h4>
-            <ul>
-                <li><strong>Manure:</strong> Improves soil structure and provides slow-release nutrients. Best composted before use.</li>
-                <li><strong>Compost:</strong> Excellent for improving soil health and providing a range of micronutrients.</li>
-                <li><strong>Bone Meal:</strong> High in phosphorus, good for root development.</li>
-                <li><strong>Fish Emulsion:</strong> Quick-release nitrogen source for leafy growth.</li>
-            </ul>
+            <button class="accordion">Organic Fertilizers</button>
+            <div class="panel">
+                <ul>
+                    <li><strong>Manure:</strong> Improves soil structure and provides slow-release nutrients. Best composted before use.</li>
+                    <li><strong>Compost:</strong> Excellent for improving soil health and providing a range of micronutrients.</li>
+                    <li><strong>Bone Meal:</strong> High in phosphorus, good for root development.</li>
+                    <li><strong>Fish Emulsion:</strong> Quick-release nitrogen source for leafy growth.</li>
+                </ul>
+            </div>
             
-            <h4>Inorganic Fertilizers:</h4>
-            <ul>
-                <li><strong>NPK Fertilizers:</strong> Balanced formulas (e.g., 10-10-10) provide nitrogen (N), phosphorus (P), and potassium (K).</li>
-                <li><strong>Urea:</strong> High nitrogen content (46%) for vegetative growth.</li>
-                <li><strong>DAP (Diammonium Phosphate):</strong> Provides nitrogen and phosphorus.</li>
-                <li><strong>Potassium Sulfate:</strong> Good potassium source without affecting soil pH.</li>
-            </ul>
+            <button class="accordion">Inorganic Fertilizers</button>
+            <div class="panel">
+                <ul>
+                    <li><strong>NPK Fertilizers:</strong> Balanced formulas (e.g., 10-10-10) provide nitrogen (N), phosphorus (P), and potassium (K).</li>
+                    <li><strong>Urea:</strong> High nitrogen content (46%) for vegetative growth.</li>
+                    <li><strong>DAP (Diammonium Phosphate):</strong> Provides nitrogen and phosphorus.</li>
+                    <li><strong>Potassium Sulfate:</strong> Good potassium source without affecting soil pH.</li>
+                </ul>
+            </div>
             
             <p><strong>Application Tips:</strong></p>
             <ul>
@@ -76,10 +186,14 @@
                 <li>Consider slow-release formulations for longer nutrient availability</li>
             </ul>
             
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/1YRvsnGXeok?si=s6jMytQBEEDCsH5b&amp;start=5" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            
             <h3>3. Temperature Requirements for Common Crops</h3>
             <p>Temperature significantly affects plant growth and development. Here are optimal temperature ranges for various crops:</p>
             
-            <table>
+            <table class="interactive-table">
                 <tr>
                     <th>Crop</th>
                     <th>Optimal Day Temp (°C)</th>
@@ -120,30 +234,40 @@
             
             <h3>4. Additional Essential Factors for Farming Success</h3>
             
-            <h4>Water Management:</h4>
-            <ul>
-                <li>Understand your crop's water requirements at different growth stages</li>
-                <li>Implement efficient irrigation systems (drip, sprinkler, etc.)</li>
-                <li>Monitor soil moisture to avoid over or under watering</li>
-                <li>Consider rainwater harvesting for sustainable water use</li>
-            </ul>
+            <button class="accordion">Water Management</button>
+            <div class="panel">
+                <ul>
+                    <li>Understand your crop's water requirements at different growth stages</li>
+                    <li>Implement efficient irrigation systems (drip, sprinkler, etc.)</li>
+                    <li>Monitor soil moisture to avoid over or under watering</li>
+                    <li>Consider rainwater harvesting for sustainable water use</li>
+                </ul>
+            </div>
             
-            <h4>Pest and Disease Control:</h4>
-            <ul>
-                <li>Practice crop rotation to break pest cycles</li>
-                <li>Use integrated pest management (IPM) strategies</li>
-                <li>Monitor crops regularly for early signs of problems</li>
-                <li>Choose resistant varieties when available</li>
-            </ul>
+            <button class="accordion">Pest and Disease Control</button>
+            <div class="panel">
+                <ul>
+                    <li>Practice crop rotation to break pest cycles</li>
+                    <li>Use integrated pest management (IPM) strategies</li>
+                    <li>Monitor crops regularly for early signs of problems</li>
+                    <li>Choose resistant varieties when available</li>
+                </ul>
+            </div>
             
-            <h4>Equipment and Tools:</h4>
-            <ul>
-                <li>Basic hand tools (hoes, rakes, shovels)</li>
-                <li>Soil testing kits</li>
-                <li>Irrigation equipment</li>
-                <li>Appropriate machinery for your scale of operation</li>
-                <li>Protective gear for handling chemicals</li>
-            </ul>
+            <button class="accordion">Equipment and Tools</button>
+            <div class="panel">
+                <ul>
+                    <li>Basic hand tools (hoes, rakes, shovels)</li>
+                    <li>Soil testing kits</li>
+                    <li>Irrigation equipment</li>
+                    <li>Appropriate machinery for your scale of operation</li>
+                    <li>Protective gear for handling chemicals</li>
+                </ul>
+            </div>
+            
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/YK3LquuKj6E?si=E6-PKrImJGGZDXYu&amp;start=5" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
             
             <p>By understanding and properly managing these essential elements - soil, fertilizers, temperature, water, and pest control - farmers can significantly improve their agricultural productivity and sustainability.</p>
         </article>
@@ -193,8 +317,8 @@
                     <a href="#" class="tag">Pest Control</a>
                     <a href="#" class="tag">Equipment</a>
                 </div>
-
             </div>
+            
             <div class="weather-forecast">
                 <h4><i class="fas fa-cloud-sun"></i> Weather Forecast</h4>
                 <p>Check real-time weather conditions for your farm location:</p>
@@ -202,18 +326,24 @@
                     View Detailed Forecast <i class="fas fa-external-link-alt"></i>
                 </a>
             </div>
-        </div>
+            
+            <div class="sidebar-widget">
+                <h3>Featured Video</h3>
+                <div class="video-container">
+                    <iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/gxVRDtNyhXw?si=9O93pCYKDU7CpsgK&amp;start=15" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+            </div>
         </aside>
     </div>
+    
     <footer>
         <div class="container footer-content">
             <div class="logo">AgriCommerce</div>
             <div class="footer-links">
                 <a href="{% url 'home'%}">Home</a>
-                <a href="{% url 'products'%}">Products</a>
+                <a href="{% url 'product_list'%}">Products</a>
                 <a href="#">Blog</a>
                 <a href="{% url 'about_us'%}">About Us</a>
-                
             </div>
             <div class="social-icons">
                 <a href="#"><i class="fab fa-facebook"></i></a>
@@ -227,6 +357,90 @@
     
     <!-- Font Awesome for icons -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <script>
+        // Accordion functionality
+        var acc = document.getElementsByClassName("accordion");
+        var i;
+        
+        for (i = 0; i < acc.length; i++) {
+            acc[i].addEventListener("click", function() {
+                this.classList.toggle("active");
+                var panel = this.nextElementSibling;
+                if (panel.style.maxHeight) {
+                    panel.style.maxHeight = null;
+                } else {
+                    panel.style.maxHeight = panel.scrollHeight + "px";
+                } 
+            });
+        }
+        
+        // Corrected pH Checker functionality
+        function checkPH() {
+            const phValue = parseFloat(document.getElementById("phValue").value);
+            const resultElement = document.getElementById("phResult");
+            // Clear previous result
+            resultElement.textContent = "";
+            resultElement.style.display = "none";
+
+            if (isNaN(phValue)) { // Fixed missing closing parenthesis
+                resultElement.textContent = "Please enter a valid pH value between 0 and 14";
+                resultElement.style.display = "block";
+                resultElement.style.backgroundColor = "#ffebee";
+                resultElement.style.color = "#c62828";
+                return;
+            }
+
+            if (phValue < 0 || phValue > 14) {
+                resultElement.textContent = "pH value must be between 0 and 14";
+                resultElement.style.display = "block";
+                resultElement.style.backgroundColor = "#ffebee";
+                resultElement.style.color = "#c62828";
+                return;
+            }
+
+            resultElement.style.display = "block";
+            resultElement.style.padding = "10px";
+            resultElement.style.borderRadius = "4px";
+            resultElement.style.marginTop = "10px";
+            if (phValue < 4.5) {
+                resultElement.textContent = "pH " + phValue + ": Extremely acidic - Not suitable for most crops. Consider adding lime to raise pH.";
+                resultElement.style.backgroundColor = "#ffebee";
+                resultElement.style.color = "#c62828";
+            } else if (phValue >= 4.5 && phValue < 5.5) {
+                resultElement.textContent = "pH " + phValue + ": Strongly acidic - Suitable only for acid-loving plants like blueberries. Most crops will need lime.";
+                resultElement.style.backgroundColor = "#fff3e0";
+                resultElement.style.color = "#e65100";
+            } else if (phValue >= 5.5 && phValue < 6.5) {
+                resultElement.textContent = "pH " + phValue + ": Slightly acidic - Ideal for most crops. This is the optimal range for nutrient availability.";
+                resultElement.style.backgroundColor = "#e8f5e9";
+                resultElement.style.color = "#2e7d32";
+            } else if (phValue >= 6.5 && phValue < 7.5) {
+                resultElement.textContent = "pH " + phValue + ": Neutral - Excellent for most crops. Perfect balance for nutrient availability.";
+                resultElement.style.backgroundColor = "#e8f5e9";
+                resultElement.style.color = "#2e7d32";
+            } else if (phValue >= 7.5 && phValue < 8.5) {
+                resultElement.textContent = "pH " + phValue + ": Slightly alkaline - Some nutrient deficiencies may occur. Consider adding sulfur or organic matter.";
+                resultElement.style.backgroundColor = "#fff3e0";
+                resultElement.style.color = "#e65100";
+            } else {
+                resultElement.textContent = "pH " + phValue + ": Strongly alkaline - Not suitable for most crops. Consider adding sulfur or organic matter to lower pH.";
+                resultElement.style.backgroundColor = "#ffebee";
+                resultElement.style.color = "#c62828";
+            }
+        }
+        
+        // Interactive table hover effect
+        const tableRows = document.querySelectorAll(".interactive-table tr");
+        tableRows.forEach(row => {
+            row.addEventListener("mouseover", function() {
+                this.style.backgroundColor = "#f5f5f5";
+                this.style.transition = "background-color 0.3s";
+            });
+            row.addEventListener("mouseout", function() {
+                this.style.backgroundColor = "";
+            });
+        });
+    </script>
     <script src="ac/js/blog.js"></script>
 </body>
 </html>

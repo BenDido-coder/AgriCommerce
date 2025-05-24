@@ -1,0 +1,61 @@
+/* Default Theme */
+:root {
+    --bg-color: #ffffff;
+    --text-color: #212529;
+    --primary-color: #2E7D32; /* Updated primary green */
+    --navbar-bg: #198754;
+    --footer-bg: #1B5E20; /* Darker green variant */
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.125);
+}
+
+/* Light Theme */
+body.theme-light {
+    --bg-color: #f8f9fa;
+    --text-color: #212529;
+    --primary-color: #3498db;
+    --navbar-bg: #3498db;
+    --footer-bg: #2c3e50;
+    --card-bg: #ffffff;
+    --card-border: rgba(0, 0, 0, 0.125);
+}
+
+/* Dark Theme */
+body.theme-dark {
+    --bg-color: #121212;
+    --text-color: #e9ecef;
+    --primary-color: #27ae60;
+    --navbar-bg: #0d3b2e;
+    --footer-bg: #1a1a1a;
+    --card-bg: #1e1e1e;
+    --card-border: rgba(255, 255, 255, 0.125);
+}
+
+/* Apply Variables to Elements */
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.navbar {
+    background-color: var(--navbar-bg) !important;
+}
+
+footer {
+    background-color: var(--footer-bg) !important;
+}
+
+.card {
+    background-color: var(--card-bg);
+    border-color: var(--card-border);
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}

@@ -11,7 +11,7 @@
 <body>
     <nav>
         <a href="{% url 'home' %}" {% if request.path == '/' %}class="active"{% endif %}>Home</a>
-        <a href="{% url 'products' %}" {% if request.path == '/products/' %}class="active"{% endif %}>Products</a>
+        <a href="{% url 'product_list' %}" {% if request.path == '/products/' %}class="active"{% endif %}>Products</a>
         <a href="{% url 'terms_of_service' %}" {% if request.path == '/terms-of-service/' %}class="active"{% endif %}>Terms</a>
         <a href="{% url 'privacy_policy' %}" {% if request.path == '/privacy-policy/' %}class="active"{% endif %}>Privacy</a>
     </nav>

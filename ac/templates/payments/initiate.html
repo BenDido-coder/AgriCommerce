@@ -1,22 +1,110 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ac/css/payments.css' %}">
+{% endblock %}
 {% block content %}
 <div class="payment-container">
     <h2>Confirm Purchase: {{ product.name }}</h2>
-    <div class="product-info">
-        <p>Price: {{ product.price }} ETB</p>
-        <p>Seller: {{ product.seller.username }}</p>
-    </div>
     
-    {% if user.wallet_balance >= product.price %}
-    <form method="post">
+    <div class="payment-summary">
+        <div class="product-image">
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        </div>
+        
+        <div class="payment-details">
+            <p class="price"> Price: {{ product.price|intcomma }} ETB</p>
+            <p class="seller">Sold by: {{ product.seller.get_full_name }}</p>
+            
+            <div class="wallet-status {% if balance_sufficient %}sufficient{% else %}insufficient{% endif %}">
+                <i class="fas fa-wallet"></i>
+                Your Balance: {{ request.user.wallet_balance|intcomma }} ETB
+            </div>
+        </div>
+    </div> 
+
+    <form method="post" action="{% url 'process_payment' product.id %}" id="payment-form">
         {% csrf_token %}
-        <button type="submit" class="btn-pay">Confirm Payment</button>
-    </form>
-    {% else %}
-    <div class="alert">
-        Insufficient balance! <a href="{% url 'wallet_topup' %}">Top Up Wallet</a>
+        <div class="form-group">
+            <label for="quantity">Quantity:</label>
+            <input type="number" 
+                   name="quantity" 
+                   id="quantity"
+                   class="form-control"
+                   min="1" 
+                   max="{{ product.stock_quantity }}"
+                   value="1"
+                   required>
+        </div>
+        
+        <!-- Dynamic balance check section -->
+        <div class="balance-feedback" id="balance-feedback" style="display: none;">
+            <div class="alert alert-warning">
+                <i style="color:red"> insufficient balance!</i> <br>
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="balance-message"></span>
+            </div>
+            <a href="{% url 'wallet_topup' %}" class="btn-topup">
+                <i class="fas fa-coins"></i> Top Up Wallet
+            </a>
+        </div>
+<br>  <div class="button-group">
+        <button type="submit" class="btn-confirm-payment" id="submit-button">
+            <i class="fas fa-check-circle"></i> Confirm Payment
+        </button>
     </div>
-    {% endif %}
+    </form>
+<br>
+    <div class="button-group">
+        <button onclick="openWhatsApp('{{ product.seller.phone }}', 
+                 'Regarding order for {{ product.name|escapejs }} (ID: {{ product.id }})')"
+                class="btn-contact-seller">
+            <i class="fab fa-whatsapp"></i> Contact Seller
+        </button>
+    </div>
+    <br>
+    <div class="back-to-products">
+        <a href="{% url 'product_list' %}" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Back to Products
+        </a>
+    </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userBalance = parseFloat({{ user_balance|escapejs }});
+    const productPrice = parseFloat({{ product_price|escapejs }});
+    const quantityInput = document.getElementById('quantity');
+    const balanceFeedback = document.getElementById('balance-feedback');
+    const balanceMessage = document.getElementById('balance-message');
+    const submitButton = document.getElementById('submit-button');
+
+    function checkBalance() {
+        const quantity = parseInt(quantityInput.value) || 1;
+        const totalNeeded = productPrice * quantity;
+        const difference = totalNeeded - userBalance;
+
+        if (userBalance < totalNeeded) {
+            const needed = (totalNeeded - userBalance).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            balanceMessage.textContent = `You need ${needed} ETB more for ${quantity} items`;
+            balanceFeedback.style.display = 'block';
+            submitButton.disabled = true;
+        } else {
+            balanceFeedback.style.display = 'none';
+            submitButton.disabled = false;
+        }
+    }
+
+    // Initial check
+    checkBalance();
+    
+    // Update on quantity change
+    quantityInput.addEventListener('input', checkBalance);
+});
+</script>
+<script src="{% static 'ac/js/whatsapp.js' %}"></script>
 {% endblock %}

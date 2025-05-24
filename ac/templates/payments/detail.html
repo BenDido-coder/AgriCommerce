@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ac/css/payments.css' %}">
+{% endblock %}
 {% block content %}
 <div class="transaction-card">
     <h2>Order #{{ transaction.id }}</h2>

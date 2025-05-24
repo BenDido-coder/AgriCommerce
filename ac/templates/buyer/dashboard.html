@@ -1,0 +1,369 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Notifications Section -->
+    <div class="mb-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-bell me-2"></i>Notifications
+            </div>
+            <div class="card-body p-2">
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications|slice:":5" %}
+                    <a href="{{ notification.related_url|default:'#' }}" class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-{{ notification.icon }} text-{{ notification.type }} me-2"></i>
+                                {{ notification.message }}
+                            </div>
+                            <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="list-group-item text-muted">
+                        No new notifications
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Dashboard Header -->
+    <div class="header-section d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3">
+                <i class="fas fa-shopping-basket me-2"></i>
+                Welcome, {{ profile.user.get_full_name }}
+            </h1>
+            <div class="mt-2">
+                <div class="d-flex gap-4 text-muted">
+                    <p class="mb-0">
+                        <i class="fas fa-wallet"></i> 
+                        Balance: {{ profile.user.wallet_balance|intcomma }} ETB
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        {{ profile.primary_address|truncatechars:30 }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'buyer_edit_profile' %}" class="btn btn-light me-2">
+                <i class="fas fa-edit"></i> Profile
+            </a>
+            <a href="{% url 'add_funds' %}" class="btn btn-success">
+                <i class="fas fa-coins me-2"></i>Add Funds
+            </a>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4 g-3">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Spent</h5>
+                    <p class="card-text display-6">{{ total_spent|intcomma }} ETB</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Active Orders</h5>
+                    <p class="card-text display-6">{{ active_orders }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Wishlist Items</h5>
+                    <p class="card-text display-6">{{ wishlist.count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Saved Suppliers</h5>
+                    <p class="card-text display-6">{{ profile.saved_suppliers.count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Order Management -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-clipboard-list me-2"></i>Recent Orders</h4>
+            <a href="{% url 'order_history' %}" class="btn btn-sm btn-outline-primary">
+                View All Orders <i class="fas fa-arrow-right ms-2"></i>
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders|slice:":5" %}
+                        <tr>
+                            <td>#{{ order.id }}</td>
+                            <td>{{ order.product.name|truncatechars:25 }}</td>
+                            <td>{{ order.amount|add:order.platform_fee|intcomma }} ETB
+                                <small class="text-muted d-block">(incl. {{ order.platform_fee|intcomma }} ETB fee)</small>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if order.status == 'completed' %}bg-success
+                                    {% elif order.status == 'shipped' %}bg-primary
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if order.status == 'shipped' %}
+                                <a href="{% url 'confirm_delivery' order.id %}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-check-circle"></i> Confirm Delivery
+                                </a>
+                                {% elif order.status == 'held' %}
+                                <form method="post" action="{% url 'cancel_order' order.id %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-danger">
+                                        <i class="fas fa-times-circle"></i> Cancel
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{% url 'order_detail' order.id %}" 
+                                   class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-search"></i> Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No recent orders found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Support & Resources Section -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-life-ring me-2"></i>Support</h5>
+                    <div class="list-group">
+                        <a href="{% url 'create_support_ticket' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-ticket-alt me-2"></i>Create Support Ticket
+                        </a>
+                        <button class="list-group-item list-group-item-action" 
+                                onclick="openWhatsApp('{{ SUPPORT_PHONE }}', 'Buyer Support Request:')">
+                            <i class="fab fa-whatsapp me-2"></i>Chat with Support
+                        </button>
+                        <a href="{% url 'help' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-question-circle me-2"></i>Help Center
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-lightbulb me-2"></i>Resources</h5>
+                    <div class="list-group">
+                        <a href="{% url 'blog' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-blog me-2"></i>Buying Guides
+                        </a>
+                        <a href="{% url 'resources' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-book me-2"></i>Product Care Tips
+                        </a>
+                        <a href="{% url 'terms_of_service' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-contract me-2"></i>Terms of Service
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Product Discovery -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-search me-2"></i>Discover Products</h4>
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" id="categoryFilter">
+                    <option value="">All Categories</option>
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+                <input type="text" class="form-control form-control-sm" placeholder="Search products..." id="productSearch">
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-3 g-4" id="productGrid">
+                {% for product in products %}
+                <div class="col product-card" data-category="{{ product.category.id }}">
+                    <div class="card h-100 shadow-sm">
+                        <img src="{{ product.image.url }}" class="card-img-top product-image" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <div class="d-flex gap-2 mb-3">
+                                <span class="badge bg-secondary">{{ product.category }}</span>
+                                <span class="badge bg-success">{{ product.get_availability_display }}</span>
+                            </div>
+                            <p class="h4 text-primary">{{ product.price|intcomma }} ETB</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between">
+                                <button class="btn btn-sm btn-outline-primary wishlist-btn"
+                                        data-product="{{ product.id }}">
+                                    <i class="fas fa-heart"></i> Wishlist
+                                </button>
+                                <a href="{% url 'product_detail' product.id %}" 
+                                   class="btn btn-sm btn-success">
+                                    <i class="fas fa-cart-plus"></i> Buy Now
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center text-muted py-4">
+                    No products available in this category
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Wishlist AJAX
+    document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const productId = this.dataset.product;
+            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        
+            fetch(`/buyer/wishlist/toggle/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) throw new Error(data.detail);
+            
+                this.classList.toggle('active', data.added);
+                this.innerHTML = data.added ? 
+                    '<i class="fas fa-heart"></i>' : 
+                    '<i class="far fa-heart"></i>';
+            
+                document.querySelectorAll('.wishlist-count').forEach(
+                    elem => elem.textContent = data.wishlist_count
+                );
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert(error.message || 'Error updating wishlist');
+            });
+        });
+    });
+
+    // Notifications auto-update
+    function updateNotifications() {
+        fetch('{% url "get_notifications" %}')
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(data => {
+                // Update notifications UI
+                console.log('Notifications updated:', data);
+            })
+            .catch(error => {
+                console.error('Notifications error:', error);
+            });
+    }
+    setInterval(updateNotifications, 30000);
+
+    // Product Filtering
+    const searchInput = document.getElementById('productSearch');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const productCards = document.querySelectorAll('.product-card');
+
+    function filterProducts() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedCategory = categoryFilter.value;
+
+        productCards.forEach(card => {
+            const productName = card.querySelector('.card-title').textContent.toLowerCase();
+            const categoryMatch = selectedCategory ? card.dataset.category === selectedCategory : true;
+            const searchMatch = productName.includes(searchTerm);
+            
+            card.style.display = (categoryMatch && searchMatch) ? 'block' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', filterProducts);
+    categoryFilter.addEventListener('change', filterProducts);
+
+    // Initialize spending chart
+    const ctx = document.getElementById('spendingChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels|safe }},
+            datasets: [{
+                label: 'Monthly Spending (ETB)',
+                data: {{ chart_data|safe }},
+                borderColor: '#4e73df',
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'top',
+                }
+            }
+        }
+    });
+});
+</script>
+<script src="{% static 'ac/js/whatsapp.js' %}"></script>
+{% endblock %}
+{% endblock content %}

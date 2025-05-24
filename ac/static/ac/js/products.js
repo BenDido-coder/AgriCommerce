@@ -405,8 +405,14 @@ function addToCart(productId, quantity = 1) {
             quantity: quantity
         });
     }
-    
 
+    // Save to localStorage
+    localStorage.setItem('cart', JSON.stringify(cart));
+    updateCartCount();
+    
+    // Show notification
+    alert(`${quantity} ${product.name} added to cart!`);
+}
 
 // Inside your product rendering logic
 function renderProduct(product) {
@@ -426,15 +432,6 @@ function renderProduct(product) {
 function openWhatsApp(phone, message) {
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${phone}?text=${encodedMessage}`, '_blank');
-}
-
-
-    // Save to localStorage
-    localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
-    
-    // Show notification
-    alert(`${quantity} ${product.name} added to cart!`);
 }
 
 function updateCartCount() {

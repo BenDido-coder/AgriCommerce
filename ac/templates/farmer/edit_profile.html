@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="header-section d-flex justify-content-between align-items-center mb-4">
+        <h1>Edit Farm Profile</h1>
+        <a href="{% url 'farmer_dashboard' %}" class="btn btn-light">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card mb-3">
+                    <div class="card-body text-center">
+                        {% if profile_form.instance.profile_photo %}
+                            <img src="{{ profile_form.instance.profile_photo.url }}" 
+                                 class="img-fluid rounded-circle mb-3" 
+                                 alt="Profile Photo" style="width: 150px; height: 150px;">
+                        {% else %}
+                            <div class="bg-light rounded-circle mb-3" 
+                                 style="width: 150px; height: 150px;"></div>
+                        {% endif %}
+                        {{ profile_form.profile_photo }}
+                        <div class="mt-3">
+                            {{ profile_form.certification.label_tag }}
+                            {{ profile_form.certification }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="card-title mb-4">Farm Information</h4>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Farm Name</label>
+                            {{ profile_form.farm_name }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Location</label>
+                            {{ profile_form.location }}
+                        </div>
+
+                        <h4 class="card-title mt-5 mb-4">Personal Information</h4>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">First Name</label>
+                                {{ user_form.first_name }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Last Name</label>
+                                {{ user_form.last_name }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Email</label>
+                                {{ user_form.email }}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Phone</label>
+                                {{ user_form.phone }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Save Changes
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

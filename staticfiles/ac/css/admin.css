@@ -1,18 +1,13 @@
-.user-list {
-    display: grid;
-    gap: 1rem;
-    padding: 20px;
+.admin-stat-card {
+    transition: transform 0.2s;
+    border-left: 4px solid var(--bs-primary);
 }
 
-.user-card {
-    border: 1px solid #ddd;
-    padding: 15px;
-    border-radius: 8px;
+.admin-stat-card:hover {
+    transform: translateY(-3px);
 }
 
-.whatsapp-btn {
-    background: #25D366;
-    color: white;
-    padding: 8px 15px;
-    margin-top: 10px;
+.moderation-actions .btn {
+    margin: 2px;
+    padding: 0.25rem 0.5rem;
 }

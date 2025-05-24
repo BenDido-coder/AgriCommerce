@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load widget_tweaks %}
+{% load humanize %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h3>Confirm Delivery</h3>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Transaction Details</h5>
+                    <p>Product: {{ transaction.product.name }}</p>
+                    <p>Amount: {{ transaction.amount }} ETB</p>
+                    <p>Seller: {{ transaction.seller.get_full_name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Funds Breakdown</h5>
+                    <p>Total Amount: {{ transaction.amount }} ETB</p>
+                    <p>Platform Fee ({{ transaction.PLATFORM_FEE_PERCENT }}%): -{{ transaction.platform_fee }} ETB</p>
+                    <hr>
+                    <p class="h5">Seller Receives: {{ transaction.amount|subtract:transaction.platform_fee|floatformat:2 }} ETB</p>
+                </div>
+            </div>
+
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.confirm.label_tag }}
+                    {{ form.confirm }}
+                    <small class="form-text text-muted">
+                        Check this box to confirm successful delivery
+                    </small>
+                </div>
+                
+                <div class="mb-3">
+                    {{ form.delivery_proof.label_tag }}
+                    {{ form.delivery_proof }}
+                </div>
+
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    By confirming delivery, you authorize the release of funds to the seller.
+                    This action cannot be undone.
+                </div>
+
+                <button type="submit" class="btn btn-success btn-lg">
+                    <i class="fas fa-check-circle"></i> Confirm Delivery
+                </button>
+                <a href="{% url 'transaction_detail' transaction.id %}" class="btn btn-secondary">
+                    Cancel
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

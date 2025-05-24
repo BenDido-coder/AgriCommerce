@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ac/css/products.css' %}">
+{% endblock %}
+{% block content %}
+<div class="product-detail-container">
+    <!-- Product Image with Fallback -->
+    <div class="product-image">
+        {% if product.image %}
+        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+        {% else %}
+        <div class="no-image">No Image Available</div>
+        {% endif %}
+    </div>
+
+    <!-- Product Details -->
+    <div class="product-info">
+        <h1>{{ product.name }}</h1>
+           <h4>Price:</h4>
+        <div class="price-badge">
+            {{ product.price }} ETB
+        </div>
+        
+        <!-- Seller Verification -->
+        <div class="seller-info">
+            <h3>Seller Details</h3>
+            <div class="verification-badge {% if product.seller.farmer_profile %}verified{% endif %}">
+                {% if product.seller.farmer_profile %}
+                <i class="fas fa-certificate"></i> Verified Farmer
+                {% else %}
+                <i class="fas fa-exclamation-triangle"></i> Unverified Seller
+                {% endif %}
+            </div>
+            <p>Farm: {{ product.seller.farmer_profile.farm_name|default:"Independent Seller" }}</p>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <!-- Buy Now Button -->
+            <a href="{% url 'initiate_payment' product.id %}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-cart"></i> Buy Now
+            </a>
+              <!-- Contact Seller Button -->
+            <button class="btn btn-outline-primary btn-lg" 
+                    onclick="openWhatsApp('{{ product.seller.phone }}', 
+                             'Regarding {{ product.name|escapejs }} (ID: {{ product.id }})')">
+                <i class="fab fa-whatsapp"></i> Contact Seller
+            </button>
+        </div>
+
+        <!-- Product Description -->
+        <div class="product-description">
+            <h3>Product Details</h3>
+            <p>{{ product.description|linebreaks }}</p>
+        </div>
+
+        <!-- Product Meta -->
+        <div class="product-meta">
+            {% if product.seller.user_type == 'FARMER' and product.harvest_date %}
+            <p class="text-success">
+                <i class="fas fa-calendar-alt"></i>
+                Harvest Date: {{ product.harvest_date|date:"M d, Y" }}
+            </p>
+            {% elif product.seller.user_type == 'SUPPLIER' and product.expiry_date %}
+            <p class="text-warning">
+                <i class="fas fa-clock"></i>
+                Expiry Date: {{ product.expiry_date|date:"M d, Y" }}
+            </p>
+            {% endif %}
+            <p class="text-muted">
+                <i class="fas fa-tag"></i>
+                Category: {{ product.get_category_display }}
+            </p>
+        </div>
+    </div>
+</div>
+<script src="{% static 'ac/js/whatsapp.js' %}"></script>
+{% endblock %}

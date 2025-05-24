@@ -1,20 +1,108 @@
-{% extends 'ac/templates/farmer/base.html' %}
-{% load crispy_forms_tags %}
+{% extends 'farmer/base.html' %}
+{% load crispy_forms_filters %}
 
 {% block page_title %}
     {% if object %}Edit {{ object.name }}{% else %}Add New Product{% endif %}
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-8">
-        <form method="post">
-            {% csrf_token %}
-            {{ form|crispy }}
-            <button type="submit" class="btn btn-primary">
-                {% if object %}Update{% else %}Create{% endif %} Product
-            </button>
-        </form>
-    </div>
+<div class="product-form">
+    <h2>{% if object %}Edit Product{% else %}Add New Product{% endif %}</h2>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <!-- Product Name -->
+        <div class="form-group">
+            {{ form.name|as_crispy_field }}
+        </div>
+        
+        <!-- Dynamic Category Field -->
+        <div class="form-group" id="category-group">
+            <label for="id_category">Product Category*</label>
+            <select name="category" 
+                    class="form-select {% if form.category.errors %}is-invalid{% endif %}" 
+                    id="id_category" 
+                    {% if request.user.user_type == 'FARMER' %}data-user-type="farmer"{% else %}data-user-type="supplier"{% endif %}>
+                {% for value, label in form.category.field.choices %}
+                    <option value="{{ value }}" 
+                            {% if value == form.category.value %}selected{% endif %}
+                            data-category-type="{% if value in agricultural_categories %}agricultural{% else %}equipment{% endif %}">
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% if form.category.errors %}
+                <div class="invalid-feedback">{{ form.category.errors }}</div>
+            {% endif %}
+            <div id="category-error" class="text-danger"></div>
+        </div>
+
+        <!-- Other Fields -->
+        {{ form.description|as_crispy_field }}
+        {{ form.price|as_crispy_field }}
+        {{ form.image|as_crispy_field }}
+        {{ form.stock_quantity|as_crispy_field }}
+        
+        {% if form.harvest_date %}
+        <div class="form-group">
+            <label>{{ form.harvest_date.label }}</label>
+            {{ form.harvest_date }}
+            <small class="form-text text-muted">When was it harvested</small>
+        </div>
+        {% endif %}
+
+        {% if form.expiry_date %}
+        <div class="form-group">
+            <label>{{ form.expiry_date.label }}</label>
+            {{ form.expiry_date }}
+            <small class="form-text text-muted">Optional expiration date for perishable items</small>
+        </div>
+        {% endif %}
+
+        <button type="submit" class="btn-submit">List Product</button>
+    </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userType = "{{ request.user.user_type|lower }}";
+    const agriculturalCats = {{ agricultural_categories|safe }};
+    const equipmentCats = {{ equipment_categories|safe }};
+    
+    // Category filtering
+    const categorySelect = document.getElementById('id_category');
+    Array.from(categorySelect.options).forEach(option => {
+        const isValid = userType === 'farmer' ? 
+            agriculturalCats.includes(option.value) :
+            equipmentCats.includes(option.value);
+        
+        option.style.display = isValid ? 'block' : 'none';
+    });
+
+    // Real-time validation
+    categorySelect.addEventListener('change', function() {
+        const isValid = userType === 'farmer' ?
+            agriculturalCats.includes(this.value) :
+            equipmentCats.includes(this.value);
+        
+        const errorMessage = document.getElementById('category-error');
+        if (!isValid) {
+            errorMessage.textContent = 'Invalid category selected for your account type.';
+            this.value = userType === 'farmer' ? agriculturalCats[0] : equipmentCats[0];
+        } else {
+            errorMessage.textContent = '';
+        }
+    });
+});
+</script>
+
+<style>
+/* Visual cues for allowed categories */
+#id_category option[data-category-type="agricultural"] {
+    background: #e8f5e9;
+}
+#id_category option[data-category-type="equipment"] {
+    background: #fff3e0;
+}
+</style>
 {% endblock %}

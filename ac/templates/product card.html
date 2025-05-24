@@ -209,23 +209,30 @@
     </div>
 
     <script>
-        // Add to cart functionality
-        document.querySelector('.add-to-cart').addEventListener('click', function() {
-            const productId = this.getAttribute('data-product-id');
-            fetch(`/api/add-to-cart/${productId}/`, {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({quantity: 1})
-            })
-            .then(response => response.json())
-            .then(data => {
-                if(data.success) {
-                    // Update cart count in navbar or show notification
-                    console.log('Added to cart successfully');
-                }
+        document.addEventListener('DOMContentLoaded', function () {
+            // Add to cart functionality for all buttons
+            document.querySelectorAll('.add-to-cart').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    const productId = this.getAttribute('data-product-id');
+                    fetch(`/api/add-to-cart/${productId}/`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ quantity: 1 })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Added to cart successfully');
+                            // Optionally, update cart count or show a notification
+                        } else {
+                            console.error('Failed to add to cart');
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                });
             });
         });
     </script>

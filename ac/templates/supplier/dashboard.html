@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block content %}
+<div class="container my-5">
+
+    <!-- Dashboard Header with Added Supplier Info -->
+    <div class="header-section d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>
+                <i class="fas fa-warehouse me-2"></i>
+                Supplier Dashboard - {{ profile.company_name }}
+            </h1>
+            <!-- ADDED SUPPLIER NAME AND WALLET INFO -->
+            <div class="mt-2">
+                <h4 class="mb-0">
+                    Welcome, 
+                    <a href="{% url 'supplier_edit_profile' %}" class="text-decoration-none">
+                        {{ user.get_full_name|default:user.email }}
+                    </a>
+                </h4>
+                <p class="text-muted mb-0">
+                    Wallet Balance: {{ user.wallet_balance|intcomma }} ETB
+                </p>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'supplier_edit_profile' %}" class="btn btn-light me-2">
+                <i class="fas fa-user-edit"></i>
+            </a>
+            <a href="{% url 'supplier_add_product' %}" class="btn btn-success">
+                <i class="fas fa-plus me-2"></i>Add Product
+            </a>
+        </div>
+    </div>
+    {% include 'ac/includes/notifications_snippet.html' with notifications=notifications %}
+    <!-- Rest of the existing content remains unchanged -->
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Sales</h5>
+                    <p class="card-text display-6">{{ total_sales|intcomma }} ETB</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Active Products</h5>
+                    <p class="card-text display-6">{{ products.count }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Orders</h5>
+                    <p class="card-text display-6">{{ pending_orders }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">My Products</h4>
+            <div class="btn-group">
+                <a href="{% url 'supplier_add_product' %}" class="btn btn-sm btn-success">
+                    <i class="fas fa-plus me-2"></i>Add New
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for product in products %}
+                <div class="col">
+                    <div class="card h-100">
+                        <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">
+                                <span class="badge bg-secondary">{{ product.get_category_display }}</span>
+                                <span class="badge {% if product.stock_quantity > 0 %}bg-success{% else %}bg-danger{% endif %}">
+                                    Stock: {{ product.stock_quantity }}
+                                </span>
+                            </p>
+                            <p class="h5">{{ product.price|intcomma }} ETB</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between">
+                                <a href="{% url 'supplier_edit_product' product.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'product_detail' product.id %}" 
+                                   class="btn btn-sm btn-outline-secondary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <p class="text-muted">No products found</p>
+                            <a href="{% url 'supplier_add_product' %}" class="btn btn-success">
+                                Add Your First Product
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Orders Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">Recent Orders</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Product</th>
+                            <th>Buyer</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in transactions|slice:":5" %}
+                        <tr>
+                            <td>#{{ transaction.telebirr_reference }}</td>
+                            <td>{{ transaction.product.name }}</td>
+                            <td>{{ transaction.buyer.get_full_name }}</td>
+                            <td>{{ transaction.amount|intcomma }} ETB</td>
+                            <td>
+                                <span class="badge 
+                                    {% if transaction.status == 'completed' %}bg-success
+                                    {% elif transaction.status == 'shipped' %}bg-primary
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if transaction.status == 'held' %}
+                                <form method="post" action="{% url 'update_order_status' transaction.id %}" 
+                                      class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="status" value="shipped" 
+                                            class="btn btn-sm btn-outline-success">
+                                        Mark Shipped
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <a href="{% url 'transaction_detail' transaction.id %}" 
+                                   class="btn btn-sm btn-outline-info">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">No recent orders</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

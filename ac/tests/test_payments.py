@@ -1,32 +1,28 @@
-# ac/tests/test_payments.py
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from decimal import Decimal
-from ac.models import Product, EscrowTransaction
+from ..models import Product, EscrowTransaction
 
 User = get_user_model()
 
 class PaymentTests(TestCase):
     def setUp(self):
-        # Create test farmer
         self.farmer = User.objects.create_user(
             email='farmer@test.com',
             phone='+251911111111',
-            password='testpass123',
             user_type='FARMER',
+            password='testpass',
             wallet_balance=Decimal('1000.00')
         )
         
-        # Create test buyer
         self.buyer = User.objects.create_user(
             email='buyer@test.com',
             phone='+251922222222',
-            password='testpass123',
             user_type='BUYER',
+            password='testpass',
             wallet_balance=Decimal('500.00')
         )
         
-        # Create test product
         self.product = Product.objects.create(
             name='Test Coffee',
             price=Decimal('150.00'),
@@ -34,15 +30,13 @@ class PaymentTests(TestCase):
             stock_quantity=10
         )
 
-    def test_full_payment_flow(self):
+    def test_payment_flow(self):
         # Test initial balances
         self.assertEqual(self.buyer.wallet_balance, Decimal('500.00'))
         
-        # Simulate payment initiation
+        # Deduct wallet
         self.buyer.deduct_wallet(self.product.price)
         self.buyer.refresh_from_db()
-        
-        # Verify deduction
         self.assertEqual(self.buyer.wallet_balance, Decimal('350.00'))
         
         # Create transaction
@@ -60,6 +54,23 @@ class PaymentTests(TestCase):
         self.farmer.add_wallet(transaction.amount)
         self.farmer.refresh_from_db()
         
-        # Verify final balances
+        # Verify final state
         self.assertEqual(self.farmer.wallet_balance, Decimal('1150.00'))
         self.assertEqual(transaction.status, 'completed')
+        
+def test_product_listing_flow(self):
+    # Farmer adds product
+    self.client.force_login(self.farmer)
+    response = self.client.post('/farmer/add-product/', {
+        'name': 'Test Maize',
+        'price': '200.00',
+        'category': 'CROP',
+        'stock_quantity': '50'
+    })
+    self.assertEqual(response.status_code, 302)
+    
+    # Buyer views products
+    self.client.force_login(self.buyer)
+    response = self.client.get('/products/')
+    self.assertContains(response, 'Test Maize')
+    self.assertContains(response, 'Buy Now')

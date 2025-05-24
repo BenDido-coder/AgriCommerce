@@ -1,34 +1,141 @@
-{% load static %}
 <!DOCTYPE html>
+{% load static %}
+{% load dashboard_url %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AgriCommerce - Farm Products Marketplace</title>
+    <title>AgriCommerce - Ethiopian Agricultural Marketplace</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'ac/css/homepage.css' %}">
+<style>
+/* Theme System */
+:root {
+  /* Default Theme (Light) */
+  --bg-color: #ffffff;
+  --text-color: #2d3436;
+  --primary-color: #2ecc71;
+  --secondary-color: #27ae60;
+  --surface-color: #f8f9fa;
+  --border-color: #dfe6e9;
+  --header-bg: rgba(255, 255, 255, 0.95);
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="dark"] {
+  --bg-color: #1a1a1a;
+  --text-color: #ecf0f1;
+  --surface-color: #2d2d2d;
+  --border-color: #3d3d3d;
+  --header-bg: rgba(26, 26, 26, 0.95);
+}
+
+[data-theme="system"] {
+  /* Reset to system preference */
+  --bg-color: initial;
+  --text-color: initial;
+  --surface-color: initial;
+  --border-color: initial;
+  --header-bg: initial;
+}
+
+/* Apply theme variables */
+body {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+header {
+  background: var(--header-bg);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo h1,
+.nav-link,
+.header-actions .btn {
+  color: var(--text-color);
+}
+
+/* Section Styling */
+.how-it-works-section,
+.features-section,
+.products-section {
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  margin: 2rem 0;
+}
+
+/* Cards */
+.feature-card,
+.step-card,
+.product-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+/* Theme Switcher */
+.theme-switcher {
+  position: relative;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.theme-btn {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.theme-btn.active {
+  background: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+</style>
+<link rel="stylesheet" href="{% static 'ac/css/homepage.css' %}">
 </head>
 <body>
     <!-- Header -->
     <header>
         <div class="container header-container">
             <div class="logo">
-                <img src="{% static 'ac/images/logo.jpg' %}" alt="AgriCommerce Logo">
+                <img src="{% static 'ac/images/logo2.png' %}" alt="AgriCommerce Logo">
                 <h1>AgriCommerce</h1>
             </div>
             <nav>
                 <ul>
-                    <li><a href="#">Home</a></li>
-                    <li><a href="#about">About</a></li>
-                    <li><a href="#products">Products</a></li>
-                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="{% url 'home' %}">Home</a></li>
+                    <li><a href="{% url 'about_us' %}">About</a></li>
+                    <li><a href="{% url 'product_list' %}">Marketplace</a></li>
                     <li><a href="{% url 'blog' %}">Blog</a></li>
-                    <li><a href="{% url 'my_account' %}">My Account</a></li>
+                    <li><a href="{% url 'contact' %}">Contact</a></li>
+                    {% if user.is_authenticated %}
+                        <li><a href="{% get_dashboard_url user %}">Dashboard</a></li>
+                    {% endif %}
+                       <!-- <li><a href="{% url 'my_account' %}">Dashboard</a></li>   -->
                 </ul>
             </nav>
             <div class="header-actions">
-                <a href="{% url 'login' %}" class="btn">Login/Signup</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'logout' %}" class="btn">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn">Login/Signup</a>
+                {% endif %}
                 <button class="mobile-menu"><i class="fas fa-bars"></i></button>
+            </div>
+            <div class="theme-switcher">
+                <button class="theme-btn" data-theme="light">☀️</button>
+                <button class="theme-btn" data-theme="dark">🌙</button>
+                <button class="theme-btn" data-theme="system">⚙️</button>
             </div>
         </div>
     </header>
@@ -37,293 +144,190 @@
     <section class="hero" id="hero">
         <div class="container">
             <div class="hero-content animate-on-scroll">
-                <h1>Direct Farm-to-Market Connections</h1>
-                <p>Empowering farmers and buyers through transparent agricultural trade</p>
+                <h1>Direct Farm-to-Buyer Marketplace</h1>
+                <p>Empowering Ethiopian farmers through transparent digital trade</p>
                 <div class="search-bar">
-                    <input type="text" placeholder="Search for crops, livestock, tools...">
-                    <button><i class="fas fa-search"></i> Search</button>
+                    <form action="{% url 'product_list' %}" method="GET">
+                        <input type="text" name="q" placeholder="Search for teff, maize, livestock, tools...">
+                        <button type="submit"><i class="fas fa-search"></i> Search</button>
+                    </form>
                 </div>
                 <div class="hero-stats">
                     <div class="stat">
-                        <h3 class="count-up" data-count="1000">0</h3>
+                        <h3 class="count-up" data-count="{{ stats.total_farmers }}">0</h3>
                         <p>Registered Farmers</p>
                     </div>
                     <div class="stat">
-                        <h3 class="count-up" data-count="110">0</h3>
-                        <p>Tons Monthly Trade</p>
+                        <h3 class="count-up" data-count="{{ stats.total_transactions }}">0</h3>
+                        <p>Successful Transactions</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- About Us Section -->
-    <section id="about" class="about">
+    <!-- Key Features Section -->
+    <section class="features animate-on-scroll">
         <div class="container">
-            <h2 class="section-title">About Us</h2>
-            <div class="about-container">
-                <div class="about-content">
-                    <h2>Connecting Farmers to Markets</h2>
-                    <p>AgriCommerce is a digital marketplace revolutionizing agricultural trade by eliminating middlemen and connecting farmers directly with buyers.</p>
-                    <p>Founded in 2025, our mission is to empower farmers with fair prices while providing buyers with fresh, traceable farm products.</p>
-                    <ul class="about-features">
-                        <li><i class="fas fa-check-circle"></i> 10K+ registered farmers</li>
-                        <li><i class="fas fa-check-circle"></i> 110 tons traded monthly</li>
-                        <li><i class="fas fa-check-circle"></i> 95% farmer satisfaction rate</li>
-                    </ul>
-                    <a href="{% url 'about_us' %}" class="btn">Learn More</a>
+            <h2 class="section-title">Why Choose AgriCommerce?</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-handshake"></i>
+                    <h3>Direct Trade</h3>
+                    <p>Connect directly with farmers and buyers without middlemen</p>
                 </div>
-                <div class="about-img">
-                    <img src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Farmers discussing">
+                <div class="feature-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Real-Time Pricing</h3>
+                    <p>Transparent market prices updated daily</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-truck-moving"></i>
+                    <h3>Logistics Support</h3>
+                    <p>Integrated transportation solutions</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h3>Mobile Payments</h3>
+                    <p>Secure M-Pesa and bank transactions</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- Categories Section -->
-    <section class="categories animate-on-scroll">
+    <!-- Ethiopian Crops Section -->
+    <section class="ethiopian-crops animate-on-scroll">
         <div class="container">
-            <h2 class="section-title">Popular Categories</h2>
-            <div class="categories-grid">
-                <!-- Vegetables -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-carrot"></i>
-                    </div>
-                    <h3>Vegetables</h3>
-                    <p>Fresh farm produce</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
+            <h2 class="section-title">Featured Ethiopian Crops</h2>
+            <div class="crops-grid">
+                <div class="crop-card">
+                    <img src="{% static 'ac/images/teff.jpg' %}" alt="Teff">
+                    <h3>Teff</h3>
+                    <p>Traditional Ethiopian grain</p>
                 </div>
-                <!-- Grains & Cereals -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-bread-slice"></i>
-                    </div>
-                    <h3>Grains & Cereals</h3>
-                    <p>Quality staple crops</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
+                <div class="crop-card">
+                    <img src="{% static 'ac/images/maize.jpg' %}" alt="Maize">
+                    <h3>Maize</h3>
+                    <p>High-quality corn production</p>
                 </div>
-                <!-- Fruits -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-apple-alt"></i>
-                    </div>
-                    <h3>Fruits</h3>
-                    <p>Quality Fruits</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
+                <div class="crop-card">
+                    <img src="{% static 'ac/images/sorghum.jpg' %}" alt="Sorghum">
+                    <h3>Sorghum</h3>
+                    <p>Drought-resistant staple crop</p>
                 </div>
-                <!-- Livestock -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-horse"></i>
-                    </div>
-                    <h3>Livestock</h3>
-                    <p>Quality livestock</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <!-- Poultry -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-egg"></i>
-                    </div>
-                    <h3>Poultry</h3>
-                    <p>Meat and Egg Poultry</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <!-- Farm Tools -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-tools"></i>
-                    </div>
-                    <h3>Farm Tools</h3>
-                    <p>Quality farm tools</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <!-- Seeds & Fertilizers -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-seedling"></i>
-                    </div>
-                    <h3>Seeds & Fertilizers</h3>
-                    <p>Quality seeds and fertilizers</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <!-- Dairy Products -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-cheese"></i>
-                    </div>
-                    <h3>Dairy Products</h3>
-                    <p>Quality dairy products</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <!-- Organic Products -->
-                <div class="category-card">
-                    <div class="category-icon">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <h3>Organic Products</h3>
-                    <p>Quality organic products</p>
-                    <a href="#" class="btn-link">Explore <i class="fas fa-arrow-right"></i></a>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Products Section -->
-    <section class="products animate-on-scroll" id="products">
-        <div class="container">
-            <h2 class="section-title">Trending Products</h2>
-            <div class="products-grid">
-                <!-- Product 1 -->
-                <div class="product-card">
-                    <div class="product-badge">Fresh!</div>
-                    <img src="{% static 'ac/images/tomatoes.jpg' %}" alt="Fresh Tomatoes">
-                    <div class="product-info">
-                        <h3>Fresh Tomatoes</h3>
-                        <div class="product-rating">
-                            <i class="fas fa-star"></i> 4.8 (120 reviews)
-                        </div>
-                        <p class="product-price">30ETB/kg</p>
-                        <p>From Shashamane, Arsi, Oromia</p>
-                        <button class="btn btn-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                    </div>
-                </div>
-                <!-- Product 2 -->
-                <div class="product-card">
-                    <div class="product-badge">Fresh!</div>
-                    <img src="{% static 'ac/images/potatoes.jpg' %}" alt="Fresh Potatoes">
-                    <div class="product-info">
-                        <h3>Fresh Potatoes</h3>
-                        <div class="product-rating">
-                            <i class="fas fa-star"></i> 4.7 (200 reviews)
-                        </div>
-                        <p class="product-price">25ETB/kg</p>
-                        <p>From Bahir Dar, Amhara</p>
-                        <button class="btn btn-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                    </div>
-                </div>
-                <!-- Product 3 -->
-                <div class="product-card">
-                    <div class="product-badge">Fresh!</div>
-                    <img src="{% static 'ac/images/onions.jpg' %}" alt="Fresh Onions">
-                    <div class="product-info">
-                        <h3>Fresh Onions</h3>
-                        <div class="product-rating">
-                            <i class="fas fa-star"></i> 4.6 (150 reviews)
-                        </div>
-                        <p class="product-price">20ETB/kg</p>
-                        <p>From Dire Dawa, Harari</p>
-                        <button class="btn btn-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                    </div>
-                </div>
-                <!-- Product 4 -->
-                <div class="product-card">
-                    <div class="product-badge">Organic!</div>
-                    <img src="{% static 'ac/images/wheat.jpg' %}" alt="Organic Wheat">
-                    <div class="product-info">
-                       <h3>Organic Wheat</h3>
-                       <div class="product-rating">
-                            <i class="fas fa-star"></i> 4.5 (100 reviews)
-                        </div>
-                        <p class="product-price">50ETB/kg</p>
-                        <p>From Farmland, Gondar, Amhara</p>
-                        <button class="btn btn-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                    </div>
-                 </div>
-                <!-- Product 5 -->
-                <div class="product-card">
-                    <div class="product-badge">Fresh!</div>
-                    <img src="{% static 'ac/images/milk.jpg' %}" alt="Fresh Milk">
-                    <div class="product-info">
-                        <h3>Fresh Milks</h3>
-                        <div class="product-rating">
-                           <i class="fas fa-star"></i> 4.9 (1900 reviews)
-                        </div>
-                        <p class="product-price">52ETB/L</p>
-                        <p>From GreenFields, Sebeta, Sheger</p>
-                        <button class="btn btn-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                    </div>
-                </div>
-                <!-- Product 6 -->
-                <div class="product-card">
-                    <div class="product-badge">Pure!</div>
-                    <img src="{% static 'ac/images/eggs.jpg' %}" alt="Pure Eggs">
-                    <div class="product-info">
-                        <h3>Pure Eggs</h3>
-                        <div class="product-rating">
-                            <i class="fas fa-star"></i> 4.0 (128 reviews)
-                        </div>
-                        <p class="product-price">15ETB/pc</p>
-                        <p>From Nifas Silk Lafto, Addis Ababa</p>
-                        <button class="btn btn-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button>
-                    </div>
-                </div>
-
-                <div class="text-center" style="margin-top: 30px;">
-                    <a href="{% url 'products'%}" class="btn">More Products</a>
+                <div class="crop-card">
+                    <img src="{% static 'ac/images/coffee.jpg' %}" alt="Coffee">
+                    <h3>Coffee</h3>
+                    <p>Premium Ethiopian coffee beans</p>
                 </div>
             </div>
         </div>
     </section>
 
     <!-- How It Works Section -->
-    <section class="steps">
+    <section class="steps animate-on-scroll">
         <div class="container">
-            <h2 class="section-title">How It Works</h2>
+            <h2 class="section-title">How AgriCommerce Works</h2>
             <div class="steps-container">
                 <div class="step">
+                    <div class="step-number">1</div>
                     <i class="fas fa-user-plus"></i>
-                    <h3>1. Register</h3>
-                    <p>Create an account as a farmer or buyer in just 2 minutes</p>
+                    <h3>Create Account</h3>
+                    <p>Register as farmer, buyer, or supplier</p>
                 </div>
                 <div class="step">
+                    <div class="step-number">2</div>
                     <i class="fas fa-store"></i>
-                    <h3>2. List or Browse</h3>
-                    <p>Farmers list their produce, buyers browse available products</p>
+                    <h3>List/Browse Products</h3>
+                    <p>Farmers list produce, buyers shop directly</p>
                 </div>
                 <div class="step">
-                    <i class="fas fa-handshake"></i>
-                    <h3>3. Deal Securely</h3>
-                    <p>Connect directly, negotiate, and complete transactions safely</p>
+                    <div class="step-number">3</div>
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <h3>Secure Transaction</h3>
+                    <p>Escrow-protected payments</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">4</div>
+                    <i class="fas fa-truck"></i>
+                    <h3>Delivery</h3>
+                    <p>Arrange logistics through our partners</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <section class="contact animate-on-scroll" id="contact">
+    <!-- Dynamic Products Section -->
+    <section class="products animate-on-scroll" id="products">
         <div class="container">
-            <h2 class="section-title">Get In Touch</h2>
-            <div class="contact-container">
-                <div class="contact-map">
-                    <iframe src="https://maps.google.com/maps?q=farmers%20market&t=&z=13&ie=UTF8&iwloc=&output=embed"></iframe>
-                </div>
-                <div class="contact-form">
-                    <form id="contactForm">
-                            <div class="form-group">
-                                <label for="name">Your Name:</label>
-                                <input type="text" id="name" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="email">Email:</label>
-                                <input type="email" id="email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="subject">Subject:</label>
-                                <input type="text" id="subject">
-                            </div>
-                            <div class="form-group">
-                                <label for="message">Message:</label>
-                                <textarea id="message" required></textarea>
-                            </div>
-
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-block">
-                                <span class="submit-text">Send Message</span>
-                                <div class="spinner"></div>
-                            </button>
+            <h2 class="section-title">Featured Agricultural Products</h2>
+            <div class="products-grid">
+                {% for product in featured_products %}
+                <div class="product-card">
+                    {% if product.stock_quantity > 0 %}
+                        <div class="product-badge">Available</div>
+                    {% else %}
+                        <div class="product-badge out-of-stock">Out of Stock</div>
+                    {% endif %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}">
+                    <div class="product-info">
+                        <h3>{{ product.name }}</h3>
+                        <div class="product-meta">
+                            <span class="product-location">
+                                <i class="fas fa-map-marker-alt"></i>
+                                {{ product.seller.farmer_profile.location|default:"Ethiopia" }}
+                            </span>
+                            <span class="product-rating">
+                                <i class="fas fa-star"></i> 
+                                {{ product.seller.farmer_profile.rating|default:"5.0" }}
+                            </span>
                         </div>
-                    </form>
+                        <p class="product-price">{{ product.price }} ETB/unit</p>
+                        <div class="product-actions">
+                            <a href="{% url 'product_detail' product.id %}" class="btn btn-view">
+                                <i class="fas fa-eye"></i> Details
+                            </a>
+                            {% if user.is_buyer %}
+                            <form action="{% url 'toggle_wishlist' product.id %}" method="POST" class="wishlist-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-wishlist">
+                                    <i class="fas fa-heart"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="text-center" style="margin-top: 30px;">
+                <a href="{% url 'product_list' %}" class="btn btn-primary">Browse All Products</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Farmer Testimonial Section -->
+    <section class="testimonials animate-on-scroll">
+        <div class="container">
+            <h2 class="section-title">Success Stories</h2>
+            <div class="testimonial-carousel">
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <img src="{% static 'ac/images/farmer2.jpg' %}" alt="Farmer">
+                        <blockquote>
+                            AgriCommerce helped me connect directly with buyers in Addis. My income increased by 40%!
+                        </blockquote>
+                        <cite>- Ato Kebede, Oromia Region</cite>
+                    </div>
+                </div>
+                <div class="testimonial-card">
+                    <div class="testimonial-content">
+                        <img src="{% static 'ac/images/farmer1.jpg' %}" alt="Farmer">
+                        <blockquote>
+                            The real-time pricing information prevents exploitation. I finally get fair prices!
+                        </blockquote>
+                        <cite>- W/ro Selam, Amhara Region</cite>
+                    </div>
                 </div>
             </div>
         </div>
@@ -333,67 +337,160 @@
     <footer>
         <div class="container">
             <div class="footer-container">
-                <div class="footer-links">
-                    <div class="footer-logo">AgriCommerce</div>
-                    <p>Connecting farmers directly with buyers for fair and transparent trade.</p>
+                <div class="footer-about">
+                    <p>GBBSS IT Department Initiative<br>
+                    Akaki-Kality, Addis Ababa<br>
+                    </P>
                     <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://t.me/SuperKnowledgez" target="_blank"><i class="fab fa-telegram"></i></a>
+                        <a href="https://wa.me/251713002362" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://www.instagram.com/_simply._miki" target="_blank"><i class="fab fa-instagram"></i></a>
+                        <a href="https://X.com/@BenDido123" target="_blank"><i class="fab fa-twitter"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">
                     <h3>Quick Links</h3>
                     <ul>
-                        <li><a href="#">Home</a></li>
-                        <li><a href="#about">About Us</a></li>
-                        <li><a href="#products">Products</a></li>
-                        <li><a href="#contact">Contact</a></li>
+                        <li><a href="{% url 'about_us' %}">About Us</a></li>
+                        <li><a href="{% url 'product_list' %}">Marketplace</a></li>
+                        <li><a href="{% url 'blog' %}">Agricultural Tips</a></li>
+                        <li><a href="{% url 'terms_of_service' %}">Terms of Service</a></li>
                     </ul>
                 </div>
                 <div class="footer-links">
                     <h3>Services</h3>
                     <ul>
-                        <li><a href="#">For Farmers</a></li>
-                        <li><a href="#">For Buyers</a></li>
-                        <li><a href="#">Logistics</a></li>
-                        <li><a href="#">Market Prices</a></li>
-                        <li><a href="#">Training</a></li>
+                        <li><a href="{% url 'signup' %}?type=farmer">Farmer Registration</a></li>
+                        <li><a href="{% url 'signup' %}?type=buyer">Buyer Registration</a></li>
+                        <li><a href="{% url 'logistics_dashboard' %}">Logistics Services</a></li>
+                        <li><a href="{% url 'currency_converter' %}">Currency Converter</a></li>
                     </ul>
                 </div>
-                <div class="footer-links">
-                    <h3>Newsletter</h3>
-                    <p>Subscribe to get updates on market trends and offers</p>
-                    <form>
-                        <input type="email" placeholder="Your Email" required>
-                        <button type="submit" class="btn">Subscribe</button>
-                    </form>
+                <div class="footer-contact">
+                    <h3>Contact Us</h3>
+                    <ul>
+                        <li><i class="fas fa-phone"></i> +251 912 345 678</li>
+                        <li><i class="fas fa-envelope"></i> support@agricommerce.et</li>
+                        <li><i class="fas fa-map-marker-alt"></i> GBBSS, Akaki-Kality</li>
+                    </ul>
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2025 AgriCommerce. All Rights Reserved.</p>
+                <p>&copy; {% now "Y" %} AgriCommerce. All rights reserved.</p>
+                <p>Empowering Ethiopian Agriculture Since 2023</p>
             </div>
         </div>
     </footer>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-          const hero = document.getElementById("hero");
-          const images = [
-            "{% static 'ac/images/hero-bg1.jpg' %}",
-            "{% static 'ac/images/hero-bg2.jpg' %}",
-            "{% static 'ac/images/hero-bg3.jpg' %}"
-          ];
-          let index = 0;
-      
-          setInterval(() => {
-            index = (index + 1) % images.length;
-            hero.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${images[index]}')`;
-          }, 4000);
-        });
-      </script>
-      
+
+    <!-- Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'ac/js/homepage.js' %}"></script>
+    <script>
+        // Dynamic counter animation
+        $(document).ready(function() {
+            $('.count-up').each(function() {
+                $(this).prop('Counter', 0).animate({
+                    Counter: $(this).data('count')
+                }, {
+                    duration: 2000,
+                    easing: 'swing',
+                    step: function(now) {
+                        $(this).text(Math.ceil(now));
+                    }
+                });
+            });
+        });
+
+        // Hero background rotation
+        const hero = document.getElementById("hero");
+        const images = [
+            "{% static 'ac/images/herobg2.jpg' %}",
+            "{% static 'ac/images/herobg1.jpg' %}",
+            "{% static 'ac/images/herobg3.jpg' %}"
+        ];
+        let currentImage = 0;
+        
+        setInterval(() => {
+            currentImage = (currentImage + 1) % images.length;
+            hero.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('${images[currentImage]}')`;
+        }, 5000);
+    </script>
+<script>
+// Theme Management
+const themeMap = {
+  light: {
+    bg: '#ffffff',
+    text: '#2d3436',
+    surface: '#f8f9fa',
+    border: '#dfe6e9',
+    header: 'rgba(255, 255, 255, 0.95)'
+  },
+  dark: {
+    bg: '#1a1a1a',
+    text: '#ecf0f1',
+    surface: '#2d2d2d',
+    border: '#3d3d3d',
+    header: 'rgba(26, 26, 26, 0.95)'
+  },
+  system: {} // Uses CSS variables from media query
+};
+
+function applyTheme(theme) {
+  const root = document.documentElement;
+  
+  if(theme === 'system') {
+    root.removeAttribute('data-theme');
+    localStorage.removeItem('theme');
+    return;
+  }
+
+  root.setAttribute('data-theme', theme);
+  localStorage.setItem('theme', theme);
+  
+  // Update CSS variables
+  const colors = themeMap[theme];
+  Object.entries(colors).forEach(([key, value]) => {
+    root.style.setProperty(`--${key}-color`, value);
+  });
+}
+
+// Initialize theme
+function initTheme() {
+  const savedTheme = localStorage.getItem('theme') || 'system';
+  const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if(btn.dataset.theme === savedTheme) {
+      btn.classList.add('active');
+    }
+  });
+
+  if(savedTheme === 'system') {
+    applyTheme(systemDark ? 'dark' : 'light');
+  } else {
+    applyTheme(savedTheme);
+  }
+}
+
+// Theme toggle buttons
+document.querySelectorAll('.theme-btn').forEach(button => {
+  button.addEventListener('click', () => {
+    const theme = button.dataset.theme;
+    applyTheme(theme);
+    initTheme();
+  });
+});
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', initTheme);
+
+// Watch system theme changes
+window.matchMedia('(prefers-color-scheme: dark)').addListener(e => {
+  if(localStorage.getItem('theme') === 'system') {
+    applyTheme(e.matches ? 'dark' : 'light');
+  }
+});
+</script>
 </body>
 </html>

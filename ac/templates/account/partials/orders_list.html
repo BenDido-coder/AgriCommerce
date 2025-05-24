@@ -5,8 +5,15 @@
                 <h4>Order #{{ order.id }}</h4>
                 <p>Product: {{ order.product.name }}</p>
                 <p>Buyer: {{ order.buyer.get_full_name }}</p>
-                <p>Status: {{ order.status }}</p>
+                <p>Status: {{ order.get_status_display }}</p>
                 <p>Date: {{ order.created_at|date:'Y-m-d' }}</p>
+                
+                <!-- Conditional Action Button -->
+                {% if order.status == 'held' %}
+                    <a href="{% url 'confirm_delivery' order.id %}" class="btn-confirm">
+                        Confirm Delivery
+                    </a>
+                {% endif %}
             </div>
         {% endfor %}
     {% else %}

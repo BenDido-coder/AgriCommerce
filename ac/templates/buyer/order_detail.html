@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h3>Order #{{ order.id }}</h3>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>Product Details</h5>
+                    <p><strong>Name:</strong> {{ order.product.name }}</p>
+                    <p><strong>Price:</strong> {{ order.amount|intcomma }} ETB</p>
+                    <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h5>Transaction Info</h5>
+                    <p><strong>Status:</strong> 
+                        <span class="badge bg-{% if order.status == 'completed' %}success
+                        {% elif order.status == 'shipped' %}primary
+                        {% else %}warning{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </p>
+                    <p><strong>Seller:</strong> {{ order.seller.get_full_name }}</p>
+                    <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
+                </div>
+            </div>
+
+            {% if can_confirm %}
+            <div class="alert alert-info">
+                <h5><i class="fas fa-truck"></i> Ready for Confirmation</h5>
+                <p>Your order has been marked as shipped. Please confirm delivery once received.</p>
+                <a href="{% url 'confirm_delivery' order.id %}" class="btn btn-success">
+                    <i class="fas fa-check-circle"></i> Confirm Delivery
+                </a>
+            </div>
+            {% endif %}
+
+            <h5 class="mt-4">Updates</h5>
+            <div class="list-group">
+                {% for update in updates %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between">
+                        <div>{{ update.message }}</div>
+                        <small class="text-muted">{{ update.created_at|timesince }} ago</small>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="list-group-item text-muted">
+                    No updates available for this order
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

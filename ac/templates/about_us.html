@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>About Us - AgriCommerce</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="{% static 'ac/css/about_us.css'%}">
+    <link rel="stylesheet" href="{% static 'ac/css/about_us.css' %}">
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
 </head>
 <body>
     <!-- Header -->
@@ -14,14 +15,14 @@
         <div class="container">
             <div class="header-container">
                 <div class="logo">
-                    <img src="{% static 'images/logo.jpg'%}" alt="AgriTrade Logo">
-                    <h1>Agri-<span>commerce</span></h1>
+                    <img src="{% static 'ac/images/logo.jpg' %}" alt="AgriCommerce Logo">
+                    <h1>Agri-<span>Commerce</span></h1>
                 </div>
                 <nav>
                     <ul>
                         <li><a href="{% url 'home' %}">Home</a></li>
                         <li><a href="#" class="active">About</a></li>
-                        <li><a href="{% url 'blog'%}">Blog</a></li>
+                        <li><a href="{% url 'blog' %}">Blog</a></li>
                     </ul>
                 </nav>
             </div>
@@ -29,40 +30,47 @@
     </header>
 
     <!-- Hero Section -->
-    <section class="about-hero">
+    <section class="about-hero" data-aos="fade-in">
         <div class="container">
             <h1>About AgriCommerce</h1>
-            <p>Connecting farmers directly to buyers for fair and transparent agricultural trade</p>
+            <p>Connecting Ethiopian farmers directly to buyers through digital innovation</p>
         </div>
     </section>
 
     <!-- About Section -->
-    <section class="about-section">
+    <section class="about-section" data-aos="fade-up">
         <div class="container">
             <div class="section-title">
-                <h2>Our Story</h2>
+                <h2>Our Journey</h2>
             </div>
             <div class="about-content">
                 <div class="about-text">
-                    <h3>Revolutionizing Agricultural Commerce</h3>
-                    <p>Founded in 2023, AgriCommerce was born from a simple idea: to create a direct connection between farmers and buyers, eliminating unnecessary middlemen and ensuring fair prices for all.</p>
-                    <p>Our platform has grown from a small local initiative to a nationwide network serving thousands of farmers and buyers across the country. We're proud to have facilitated over $10M in agricultural trade while maintaining our commitment to transparency and fairness.</p>
-                    
+                    <h3>Empowering Agricultural Trade</h3>
+                    <p>AgriCommerce emerged from Gelan Boys' Boarding Secondary School's IT Department as a solution to Ethiopia's agricultural challenges. Our platform bridges the gap between small-scale farmers and national markets, eliminating exploitative middlemen through digital innovation.</p>
+                    <p>Key features driving change:</p>
+                    <ul class="feature-list">
+                        <li>Direct farmer-to-buyer transactions</li>
+                        <li>Real-time market price updates</li>
+                        <li>Integrated logistics support</li>
+                        <li>Secure digital payments (M-Pesa integration)</li>
+                        <li>Dual-language support (Amharic & English)</li>
+                    </ul>
+
                     <div class="mission-vision">
-                        <div class="mission-box">
+                        <div class="mission-box" data-aos="fade-right">
                             <i class="fas fa-bullseye"></i>
                             <h4>Our Mission</h4>
-                            <p>To empower farmers with direct market access and provide buyers with fresh, traceable agricultural products at fair prices.</p>
+                            <p>Modernize Ethiopia's agricultural sector through digital marketplace solutions that ensure fair pricing and market access.</p>
                         </div>
-                        <div class="vision-box">
+                        <div class="vision-box" data-aos="fade-left">
                             <i class="fas fa-eye"></i>
                             <h4>Our Vision</h4>
-                            <p>A world where agricultural trade is transparent, efficient, and beneficial for all participants in the supply chain.</p>
+                            <p>To become Ethiopia's premier agricultural trading platform, serving 1 million farmers by 2030.</p>
                         </div>
                     </div>
                 </div>
                 <div class="about-img">
-                    <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ce?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" alt="Farmers discussing">
+                    <img src="{% static 'ac/images/hero-bg5.jpg' %}" alt="Ethiopian Farmers">
                 </div>
             </div>
         </div>
@@ -72,108 +80,79 @@
     <section class="team-section">
         <div class="container">
             <div class="section-title">
-                <h2>Meet Our Founders</h2>
+                <h2>Development Team</h2>
+                <p>The IT Department students behind AgriCommerce</p>
             </div>
             <div class="team-grid">
-                <!-- Founder 1 -->
+                <!-- Team Member 1 -->
                 <div class="team-member">
                     <div class="member-img">
-                        <img src="{% static 'images/miki.jpg'%}" alt="Mikiyas Kasshun">
+                        <img src="{% static 'ac/images/kenawak.jpg' %}" alt="Kenawak Lelisa">
                     </div>
                     <div class="member-info">
-                        <h3>Mikiyas Kasshun</h3>
-                        <p class="position">CEO & Co-Founder</p>
-                        <p class="bio">Agricultural economist with 15 years experience in farm-to-market systems. Leads overall strategy and business development.</p>
-                        <div class="member-social">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fas fa-envelope"></i></a>
-                        </div>
+                        <h3>Kenawak Lelisa</h3>
+                        <p class="position">Frontend Developer & Content Creator</p>
+                        <p class="bio">Responsible for HTML structure and content strategy. Ensures platform accessibility across devices.</p>
                     </div>
                 </div>
-                
-                <!-- Founder 2 -->
+
+                <!-- Team Member 2 -->
                 <div class="team-member">
                     <div class="member-img">
-                        <img src="" alt="Dagim Maru">
+                        <img src="{% static 'ac/images/dagim.jpg' %}" alt="Dagim Maru">
                     </div>
                     <div class="member-info">
                         <h3>Dagim Maru</h3>
-                        <p class="position">CTO & Co-Founder</p>
-                        <p class="bio">Tech innovator specializing in agricultural platforms. Oversees all technical development and product innovation.</p>
-                        <div class="member-social">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fas fa-envelope"></i></a>
-                        </div>
+                        <p class="position">JavaScript Specialist</p>
+                        <p class="bio">Developed interactive features and dynamic content updates for seamless user experience.</p>
                     </div>
                 </div>
-                
-                <!-- Founder 3 -->
+
+                <!-- Team Member 3 -->
                 <div class="team-member">
                     <div class="member-img">
-                        <img src="" alt="Zeamanuel million">
+                        <img src="{% static 'ac/images/mikiyas.jpg' %}" alt="Mikiyas Kasahun">
                     </div>
                     <div class="member-info">
-                        <h3>Zeamanuel million</h3>
-                        <p class="position">COO & Co-Founder</p>
-                        <p class="bio">Operations expert with background in logistics and supply chain management. Ensures smooth platform operations.</p>
-                        <div class="member-social">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fas fa-envelope"></i></a>
-                        </div>
+                        <h3>Mikiyas Kasahun</h3>
+                        <p class="position">CSS Architect</p>
+                        <p class="bio">Designed responsive layouts and visual styling for optimal user interface across platforms.</p>
                     </div>
                 </div>
-                
-                <!-- Founder 4 -->
+
+                <!-- Team Member 4 -->
                 <div class="team-member">
                     <div class="member-img">
-                        <img src="" alt="Biniyam dido">
+                        <img src="{% static 'ac/images/biniyam.jpg' %}" alt="Biniyam Dido">
                     </div>
                     <div class="member-info">
-                        <h3>Biniyam dido</h3>
-                        <p class="position">CFO & Co-Founder</p>
-                        <p class="bio">Financial strategist ensuring sustainable growth and farmer payment systems. Manages all financial operations.</p>
-                        <div class="member-social">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fas fa-envelope"></i></a>
-                        </div>
+                        <h3>Biniyam Dido</h3>
+                        <p class="position">Backend Developer</p>
+                        <p class="bio">Implemented database architecture and DJANGO logic for secure transactions.</p>
                     </div>
                 </div>
-                
-                <!-- Founder 5 -->
+
+                <!-- Team Member 5 -->
                 <div class="team-member">
                     <div class="member-img">
-                        <img src="" alt="Daniel Getachew">
+                        <img src="{% static 'ac/images/daniel.jpg' %}" alt="Daniel Getachew">
                     </div>
                     <div class="member-info">
                         <h3>Daniel Getachew</h3>
-                        <p class="position">Head of Farmer Relations</p>
-                        <p class="bio">Former farmer who bridges the gap between technology and agricultural communities. Leads farmer onboarding.</p>
-                        <div class="member-social">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fas fa-envelope"></i></a>
-                        </div>
+                        <p class="position">Database Engineer</p>
+                        <p class="bio">Designed and optimized MySQL database structure for efficient data management.</p>
                     </div>
                 </div>
-                
-                <!-- Founder 6 -->
+
+                <!-- Team Member 6 -->
                 <div class="team-member">
                     <div class="member-img">
-                        <img src="" alt="kenawake lelisa">
+                        <img src="{% static 'ac/images/zeamanuel.jpg' %}" alt="Zeamanuel Million">
                     </div>
                     <div class="member-info">
-                        <h3>kenawake lelisa</h3>
-                        <p class="position">Head of Buyer Relations</p>
-                        <p class="bio">Connects retailers and consumers with quality farm products. Manages buyer partnerships and satisfaction.</p>
-                        <div class="member-social">
-                            <a href="#"><i class="fab fa-linkedin-in"></i></a>
-                            <a href="#"><i class="fab fa-twitter"></i></a>
-                            <a href="#"><i class="fas fa-envelope"></i></a>
-                        </div>
+                        <h3>Zeamanuel Million</h3>
+                        <p class="position">Backend Developer</p>
+                        <p class="bio">Integrated Python/Django backend for seamless content management.</p>
                     </div>
                 </div>
             </div>
@@ -181,27 +160,28 @@
     </section>
 
     <!-- Stats Section -->
-    <section class="stats-section">
+    <section class="stats-section" data-aos="fade-up">
         <div class="container">
             <div class="stats-grid">
                 <div class="stat-item">
-                    <h3>10,000+</h3>
-                    <p>Farmers Empowered</p>
+                    <h3 class="count" data-count="{{ stats.total_farmers }}">0</h3>
+                    <p>Registered Farmers</p>
                 </div>
                 <div class="stat-item">
-                    <h3>5,000+</h3>
+                    <h3 class="count" data-count="{{ stats.total_buyers }}">0</h3>
                     <p>Verified Buyers</p>
                 </div>
                 <div class="stat-item">
-                    <h3>$10M+</h3>
-                    <p>In Transactions</p>
+                    <h3 class="count" data-count="{{ stats.total_transactions }}">0</h3>
+                    <p>Successful Transactions</p>
                 </div>
                 <div class="stat-item">
-                    <h3>98%</h3>
-                    <p>Satisfaction Rate</p>
+                    <h3 class="count" data-count="{{ stats.total_revenue|floatformat:0 }}">0 ETB</h3>
+                    <p>Economic Impact</p>
                 </div>
             </div>
         </div>
+    </section>
 
     <!-- Footer -->
     <footer>
@@ -211,40 +191,58 @@
                     <div class="footer-logo">
                         <i class="fas fa-leaf"></i> Agri-Commerce
                     </div>
-                    <p>Connecting farmers directly with buyers for fair and transparent agricultural trade since 2023.</p>
+                    <p>Empowering Ethiopian agriculture through digital innovation since {% now "Y" %}.</p>
                     <div class="social-links">
-                
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-               
+                        <a href="#"><i class="fab fa-telegram"></i></a>
+                        <a href="#"><i class="fab fa-facebook"></i></a>
                     </div>
                 </div>
                 <div class="footer-links">
                     <h4>Quick Links</h4>
                     <ul>
-                        <li><a href="{% url 'home'%}">Home</a></li>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="{% url 'products'%}">Products</a></li>
-                        <li><a href="{% url 'home'%}">Contact</a></li>
-                       
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'about_us' %}">About</a></li>
+                        <li><a href="{% url 'product_list' %}">Marketplace</a></li>
+                        <li><a href="{% url 'contact' %}">Contact Support</a></li>
                     </ul>
                 </div>
-                
                 <div class="footer-links">
-                    <h4>Contact Info</h4>
+                    <h4>Contact</h4>
                     <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> </li>
-                        <li><i class="fas fa-phone"></i> </li>
-                        <li><i class="fas fa-envelope"></i> info@agricommerce.com</li>
+                        <li><i class="fas fa-map-marker-alt"></i> GBBSS, Akaki-Kality, Addis Ababa</li>
+                        <li><i class="fas fa-envelope"></i> support@agricommerce.et</li>
+                        <li><i class="fas fa-phone"></i> +251 912 345 678</li>
                     </ul>
                 </div>
             </div>
             <div class="copyright">
-                <p>&copy; 2023 AgriCommerce. All Rights Reserved.</p>
+                <p>&copy; {% now "Y" %} AgriCommerce. All rights reserved.</p>
+                <p>Submitted to: Mr. Feleke Admassie</p>
             </div>
         </div>
     </footer>
 
-    <script src="{% static 'ac/js/about_us.js'%}"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init();
+
+        // Counter Animation
+        $('.count').each(function () {
+            $(this).prop('Counter', 0).animate({
+                Counter: $(this).data('count')
+            }, {
+                duration: 2000,
+                easing: 'swing',
+                step: function (now) {
+                    const display = $(this).data('count') >= 1000000 ? 
+                        `$${Math.floor(now).toLocaleString()}` : 
+                        `${Math.floor(now)}${$(this).text().includes('%') ? '%' : ''}`;
+                    $(this).text(display);
+                }
+            });
+        });
+    </script>
+    <script src="{% static 'ac/js/about_us.js' %}"></script>
 </body>
 </html>

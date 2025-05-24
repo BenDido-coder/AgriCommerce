@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h3>Order History</h3>
+        </div>
+        <div class="card-body">
+            {% include 'buyer/partials/order_table.html' with orders=orders %}
+        </div>
+    </div>
+</div>
+{% endblock %}

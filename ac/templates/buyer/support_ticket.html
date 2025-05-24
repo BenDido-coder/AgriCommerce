@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Create Support Ticket</h4>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.subject.label_tag }}
+                    {{ form.subject }}
+                </div>
+                <div class="mb-3">
+                    {{ form.message.label_tag }}
+                    {{ form.message }}
+                </div>
+                <div class="mb-3">
+                    {{ form.attachments.label_tag }}
+                    {{ form.attachments }}
+                    <small class="form-text text-muted">
+                        You can upload up to {{ max_files }} files ({{ allowed_types|join:", " }})
+                    </small>
+                </div>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-paper-plane me-2"></i>Submit Ticket
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

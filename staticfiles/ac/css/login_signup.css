@@ -43,6 +43,10 @@ header {
     padding: 20px 0;
     margin-bottom: 40px;
 }
+    .nav-tabs .nav-link.active { 
+        background:#e9f7ef; 
+        border-color:#198754 #198754 #fff;
+        color:#198754; }
 
 .logo {
     display: flex;

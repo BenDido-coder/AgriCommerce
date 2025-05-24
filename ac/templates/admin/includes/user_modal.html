@@ -1,0 +1,39 @@
+<div class="modal fade" id="userModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Full Name</dt>
+                    <dd class="col-sm-9" id="user-fullname"></dd>
+
+                    <dt class="col-sm-3">Email</dt>
+                    <dd class="col-sm-9" id="user-email"></dd>
+
+                    <dt class="col-sm-3">Phone</dt>
+                    <dd class="col-sm-9" id="user-phone"></dd>
+
+                    <dt class="col-sm-3">Registration Date</dt>
+                    <dd class="col-sm-9" id="user-registered"></dd>
+
+                    <dt class="col-sm-3">Last Login</dt>
+                    <dd class="col-sm-9" id="user-lastlogin"></dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function populateUserModal(data) {
+    document.getElementById('user-fullname').textContent = data.full_name;
+    document.getElementById('user-email').textContent = data.email;
+    document.getElementById('user-phone').textContent = data.phone;
+    document.getElementById('user-registered').textContent = new Date(data.date_joined).toLocaleString();
+    document.getElementById('user-lastlogin').textContent = data.last_login ? 
+        new Date(data.last_login).toLocaleString() : 'Never';
+}
+</script>

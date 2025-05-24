@@ -1,48 +1,57 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Farmer Dashboard - AgriCommerce</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-2 d-none d-md-block bg-light sidebar">
-                <div class="sidebar-sticky">
-                    <h4 class="sidebar-heading px-3 mt-4 mb-1 text-muted">
-                        {{ request.user.farmer_profile.farm_name }}
-                    </h4>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="{% url 'farmer-dashboard' %}">
-                                Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'product-add' %}">
-                                Add New Product
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#">
-                                Transactions
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+{% extends 'base.html' %}
+{% load static %}
 
-            <!-- Main Content -->
-            <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">{% block page_title %}{% endblock %}</h1>
-                </div>
-                {% block content %}{% endblock %}
-            </main>
-        </div>
+{% block title %}Farmer Dashboard{% endblock %}
+
+{% block extra_css %}
+    {% block extra_head %}
+        <link href="{% static 'ac/css/farmer.css' %}" rel="stylesheet">
+    {% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Sidebar -->
+        <nav class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+            <div class="position-sticky pt-3">
+                <h5 class="sidebar-heading px-3 text-success">
+                    {{ request.user.farmer_profile.farm_name|default:"My Farm" }}
+                </h5>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'farmer_dashboard' %}active{% endif %}" 
+                           href="{% url 'farmer_dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if 'add_product' in request.path %}active{% endif %}" 
+                           href="{% if request.user.user_type == 'FARMER' %}{% url 'farmer_add_product' %}{% else %}{% url 'supplier_add_product' %}{% endif %}">
+                            <i class="fas fa-plus-circle"></i>
+                            {% if request.user.user_type == 'FARMER' %}
+                                     Add Product
+                            {% elif request.user.user_type == 'SUPPLIER' %}
+                                     Add Products
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-exchange-alt"></i> Transactions
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h2>{% block farmer_content_title %}{% endblock %}</h2>
+            </div>
+            {% block farmer_content %}{% endblock %}
+        </main>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}

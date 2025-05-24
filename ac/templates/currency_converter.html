@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-body">
+          <h3 class="text-center mb-4">Real-Time Currency Converter</h3>
+
+          <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            {{ form.non_field_errors }}
+
+            <div class="mb-3">
+              {{ form.amount.label_tag }}
+              {{ form.amount }}
+              {{ form.amount.errors }}
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                {{ form.from_currency.label_tag }}
+                {{ form.from_currency }}
+                {{ form.from_currency.errors }}
+              </div>
+              <div class="col-md-6 mb-3">
+                {{ form.to_currency.label_tag }}
+                {{ form.to_currency }}
+                {{ form.to_currency.errors }}
+              </div>
+            </div>
+
+            <div class="d-grid mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">Convert</button>
+            </div>
+          </form>
+
+          {% if result %}
+          <div class="alert alert-success text-center mt-4 animate__animated animate__fadeIn">
+            <h5>Converted Amount:</h5>
+            <strong>{{ result }}</strong>
+          </div>
+          {% endif %}
+            {% if error %}
+            <div class="alert alert-danger text-center mt-4 animate__animated animate__fadeIn">
+                <h5>Error:</h5>
+                <strong>{{ error }}</strong>
+            </div>
+            {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Bootstrap form validation
+  (() => {
+    'use strict';
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+      form.addEventListener('submit', event => {
+        if (!form.checkValidity()) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  })();
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% load static %}
+<div class="modal fade" id="broadcastModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="fab fa-whatsapp"></i> Send Broadcast</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Message Content</label>
+                    <textarea class="form-control" rows="4" 
+                              placeholder="Type your broadcast message..." 
+                              id="broadcastMessage" required></textarea>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> Selected recipients: <span id="selectedCount">0</span>
+                </div>
+                <button class="btn btn-success w-100" onclick="sendBroadcast()">
+                    <i class="fab fa-whatsapp"></i> Send to Selected Users
+                </button>
+                <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i> 
+                    You must be <a href="https://web.whatsapp.com" target="_blank">logged into WhatsApp Web</a> for full profile visibility.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Select All checkbox
+    document.getElementById('selectAll').addEventListener('change', function(e) {
+        document.querySelectorAll('.user-check').forEach(checkbox => {
+            checkbox.checked = e.target.checked;
+        });
+        updateSelectedCount();
+    });
+
+    // Individual checkboxes
+    document.querySelectorAll('.user-check').forEach(checkbox => {
+        checkbox.addEventListener('change', updateSelectedCount);
+    });
+});
+
+function updateSelectedCount() {
+    const count = document.querySelectorAll('.user-check:checked').length;
+    document.getElementById('selectedCount').textContent = count;
+}
+
+function sendBroadcast() {
+    const message = document.getElementById('broadcastMessage').value.trim();
+    if (!message) {
+        alert('Please enter a broadcast message');
+        return;
+    }
+
+    const selectedPhones = Array.from(document.querySelectorAll('.user-check:checked'))
+                               .map(checkbox => checkbox.dataset.phone);
+
+    if (selectedPhones.length === 0) {
+        alert('Please select at least one recipient');
+        return;
+    }
+
+    if (!confirm(`This will open ${selectedPhones.length} WhatsApp windows. Continue?`)) {
+        return;
+    }
+
+    // Send messages with 2-second delay between each
+    selectedPhones.forEach((phone, index) => {
+        setTimeout(() => {
+            openWhatsApp(phone, message);
+        }, index * 2000);
+    });
+
+    $('#broadcastModal').modal('hide');
+}
+</script>
+
+{% block extra_js %}
+<script src="{% static 'ac/js/whatsapp.js' %}"></script>
+{% endblock %}

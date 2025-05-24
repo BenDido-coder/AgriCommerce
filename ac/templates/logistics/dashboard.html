@@ -1,0 +1,285 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+{% block content %}
+<div class="container my-5">
+    <!-- Dashboard Header -->
+    <div class="header-section d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1>
+                <i class="fas fa-truck me-2"></i>
+                Logistics Dashboard - {{ profile.company_name }}
+            </h1>
+            <div class="mt-2">
+                <h4 class="mb-0">
+                    {{ profile.vehicle_type }} • {{ profile.license_plate }}
+                </h4>
+                <div class="d-flex gap-4 text-muted">
+                    <p class="mb-0">
+                        <i class="fas fa-map-marker-alt"></i> 
+                        Coverage: {{ profile.service_areas }}
+                    </p>
+                    <p class="mb-0">
+                        <i class="fas fa-wallet"></i> 
+                        Balance: {{ user.wallet_balance|intcomma }} ETB
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div>
+            <a href="{% url 'logistics_edit_profile' %}" class="btn btn-light me-2">
+                <i class="fas fa-edit"></i>
+            </a>
+        </div>
+           {% if not profile.vehicle_type or profile.vehicle_type == 'Truck' %}
+        <div class="alert alert-warning">
+         Please complete your <a href="{% url 'logistics_edit_profile' %}">profile details</a>
+         </div>
+         {% endif %}
+    </div>
+    {% include 'ac/includes/notifications_snippet.html' with notifications=notifications %}
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Total Earnings</h5>
+                    <p class="card-text display-6">{{ total_earnings|intcomma }} ETB</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Jobs</h5>
+                    <p class="card-text display-6">{{ pending_jobs }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Completed</h5>
+                    <p class="card-text display-6">{{ profile.completed_jobs }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Rating</h5>
+                    <p class="card-text display-6">{{ profile.average_rating|default:"4.8" }}/5</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delivery Requests -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-box-open me-2"></i>Available Delivery Jobs</h4>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-2 g-4">
+                {% for job in jobs|slice:":4" %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Job #{{ job.id }}</h5>
+                            <div class="row">
+                                <div class="col-6">
+                                    <p class="mb-1"><strong>Pickup:</strong></p>
+                                    <p class="text-muted">{{ job.pickup_location }}</p>
+                                </div>
+                                <div class="col-6">
+                                    <p class="mb-1"><strong>Delivery:</strong></p>
+                                    <p class="text-muted">{{ job.dropoff_location }}</p>
+                                </div>
+                            </div>
+                            <p class="mb-1"><strong>Payment:</strong> {{ job.payment_amount|intcomma }} ETB</p>
+                            <p class="mb-1"><strong>Contact:</strong> {{ job.client.get_full_name }}</p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <div class="d-flex justify-content-between">
+                                <form method="post" action="{% url 'accept_job' job.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="fas fa-check"></i> Accept
+                                    </button>
+                                </form>
+                                <button class="btn btn-outline-primary btn-sm" 
+                                        onclick="openWhatsApp('{{ job.client.phone }}', 'Delivery Inquiry - Job #{{ job.id }}')">
+                                    <i class="fab fa-whatsapp"></i> Contact
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col">
+                    <div class="card h-100">
+                        <div class="card-body text-center">
+                            <p class="text-muted">No available delivery jobs</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Overview -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Delivery Schedule</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Job ID</th>
+                            <th>Client</th>
+                            <th>Pickup Time</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in upcoming_jobs %}
+                        <tr>
+                            <td>#{{ job.id }}</td>
+                            <td>{{ job.client.get_full_name }}</td>
+                            <td>{{ job.pickup_time|date:"M d, Y H:i" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if job.status == 'completed' %}bg-success
+                                    {% elif job.status == 'in_transit' %}bg-primary
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ job.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if job.status == 'accepted' %}
+                                <button class="btn btn-sm btn-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#completeModal{{ job.id }}">
+                                    Mark Complete
+                                </button>
+                                {% endif %}
+                                <a href="#" class="btn btn-sm btn-outline-info">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Earnings & Ratings -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-chart-line me-2"></i>Earnings Overview</h5>
+                    <canvas id="earningsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="fas fa-star me-2"></i>Recent Feedback</h5>
+                    <div class="list-group">
+                        {% for review in profile.reviews.all|slice:":3" %}
+                        <div class="list-group-item">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <strong>{{ review.client.get_full_name }}</strong>
+                                    <div class="text-warning">
+                                        {% for i in "12345"|make_list %}
+                                        <i class="fas fa-star{% if forloop.counter > review.rating %}-o{% endif %}"></i>
+                                        {% endfor %}
+                                    </div>
+                                    <p class="mb-0">{{ review.comment }}</p>
+                                </div>
+                                <small class="text-muted">{{ review.created_at|date:"M d" }}</small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="text-center py-3">
+                            <p class="text-muted">No feedback received yet</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Completion Modals -->
+{% for job in upcoming_jobs %}
+<div class="modal fade" id="completeModal{{ job.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'complete_job' job.id %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Delivery #{{ job.id }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Upload Delivery Proof</label>
+                        <input type="file" class="form-control" name="delivery_proof" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea class="form-control" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Confirm Delivery</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Earnings chart initialization
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('earningsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Monthly Earnings (ETB)',
+                data: [120000, 150000, 180000, 90000, 200000, 170000],
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                borderColor: 'rgb(54, 162, 235)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

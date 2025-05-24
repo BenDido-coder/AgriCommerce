@@ -1,5 +1,5 @@
 {% load static %}
-{% load custom_filters %}
+{% load widget_tweaks %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,8 +14,10 @@
     <div class="container">
         <header>
             <div class="logo">
-                <img src="{% static 'ac/images/logo.jpg' %}" alt="AgriCommerce Logo">
-                <h1>Agri-<span>commerce</span></h1>
+                <img src="{% static 'ac/images/logo2.png' %}" alt="AgriCommerce Logo">
+                <h1>AgriCommerce</h1>
+            </div>
+            <div class="nav-item" style="color: green; font-size: 20px"><a href="{% url 'home' %}" style="color:green; text-decoration:none">Home</a>
             </div>
         </header>
 

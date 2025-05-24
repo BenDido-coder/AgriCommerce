@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Marketplace - AgriCommerce{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ac/css/products.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row">
+        <!-- Filters Sidebar -->
+        <div class="col-lg-3 col-xl-2 border-end">
+            <div class="sticky-top pt-3">
+                <h5 class="mb-3 px-3">Filter Products</h5>
+                
+                <!-- Search Box -->
+                <div class="px-3 mb-4">
+                    <div class="search-box">
+                        <div class="input-group">
+                            <span class="input-group-text bg-transparent border-end-0">
+                                <i class="fas fa-search text-muted"></i>
+                            </span>
+                            <input type="text" 
+                                   id="searchInput"
+                                   class="form-control border-start-0" 
+                                   placeholder="Search products..." 
+                                   value="{{ request.GET.q }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Filter -->
+                <div class="px-3 mb-4">
+                    <h6 class="text-muted mb-3">Categories</h6>
+                    <div class="nav flex-column nav-pills" id="categoryFilter">
+                        <a class="nav-link {% if not selected_category %}active{% endif %}" 
+                           href="#" data-category="">
+                            All Categories
+                        </a>
+                        {% for cat_value, cat_name in categories %}
+                        <a class="nav-link {% if selected_category == cat_value %}active{% endif %}" 
+                           href="#" data-category="{{ cat_value }}">
+                            {{ cat_name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9 col-xl-10">
+            <div class="container-fluid py-4">
+                <!-- Page Header -->
+                <div class="row mb-4 g-3">
+                    <div class="col-md-8">
+                        <h2 class="mb-0">
+                            {% if selected_category %}
+                                {{ selected_category.get_category_display }}
+                            {% else %}
+                                All Products
+                            {% endif %}
+                            <small class="text-muted fs-5">({{ products.count }} items)</small>
+                        </h2>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="{% url 'farmer_dashboard' %}" class="btn btn-success">
+                            <i class="fas fa-tractor me-2"></i>Seller Dashboard
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Product Grid -->
+                <div id="productGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                    {% include 'products/includes/product_grid.html' %}
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loading" class="text-center py-5" style="display: none;">
+                    <div class="spinner-border text-success" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const productGrid = document.getElementById('productGrid');
+    const loading = document.getElementById('loading');
+    let timeout = null;
+    let currentCategory = '{{ selected_category }}';
+
+    // Live Search Functionality
+    searchInput.addEventListener('input', function(e) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            updateProducts();
+        }, 300);
+    });
+
+    // Category Filter Click
+    document.querySelectorAll('#categoryFilter .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            currentCategory = this.dataset.category;
+            
+            // Update active state
+            document.querySelectorAll('#categoryFilter .nav-link').forEach(el => {
+                el.classList.remove('active');
+            });
+            this.classList.add('active');
+            
+            updateProducts();
+        });
+    });
+
+    // AJAX Product Update
+    function updateProducts() {
+        loading.style.display = 'block';
+        const query = searchInput.value;
+        
+        let url = `{% url 'product_list' %}?`;
+        if (query) url += `q=${encodeURIComponent(query)}&`;
+        if (currentCategory) url += `category=${encodeURIComponent(currentCategory)}`;
+        
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            productGrid.innerHTML = html;
+            loading.style.display = 'none';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            loading.style.display = 'none';
+        });
+    }
+});
+</script>
+{% endblock %}

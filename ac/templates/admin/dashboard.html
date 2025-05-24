@@ -1,0 +1,233 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load static %}
+{% block content %}
+{% include 'admin/includes/user_modal.html' %}
+<div class="container my-5">
+    <!-- Header -->
+    <div class="header-section mb-4">
+        <h1><i class="fas fa-shield-alt"></i> Admin Dashboard</h1>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5>👩‍🌾 Farmers</h5>
+                    <h2>{{ stats.total_farmers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5>🛒 Buyers</h5>
+                    <h2>{{ stats.total_buyers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5>📦Products</h5>
+                    <h2>{{ stats.total_products }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5>💰 Transaction </h5>
+                    <h2>{{ stats.total_transactions }}</h2>
+                </div>
+            </div>
+        </div> 
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5>💰 Revenue </h5>
+                    <h2>{{ stats.revenue_30d }}</h2>
+                </div>
+            </div>
+        </div>                  
+        <!-- Repeat for other stats -->
+    </div>
+
+    <!-- User Management -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4><i class="fas fa-users"></i> Recent Registrations</h4>
+        </div>
+        <div class="card-body">
+            <table class="table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in recent_users %}
+                    <tr>
+                        <td>{{ user.email }}</td>
+                        <td>{{ user.get_user_type_display }}</td>
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-danger">Suspended</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-secondary view-user" 
+                                    data-user-id="{{ user.id }}">
+                                        <i class="fas fa-eye"></i>
+                                </button>
+                                <button class="btn btn-sm {% if user.is_active %}btn-danger{% else %}btn-success{% endif %} toggle-status" 
+                                    data-user-id="{{ user.id }}">
+                                   {% if user.is_active %}<i class="fas fa-ban"></i>{% else %}<i class="fas fa-check"></i>{% endif %}
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Transaction Monitoring -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4><i class="fas fa-coins"></i> Recent Transactions</h4>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Buyer</th>
+                        <th>Seller</th>
+                        <th>Amount</th>
+                        <th>Fee</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for tx in recent_transactions %}
+                    <tr>
+                        <td>#{{ tx.id }}</td>
+                        <td>{{ tx.buyer.email }}</td>
+                        <td>{{ tx.seller.email }}</td>
+                        <td>{{ tx.amount|intcomma }} ETB</td>
+                        <td>{{ tx.platform_fee|intcomma }} ETB</td>
+                        <td>
+                            <span class="badge 
+                                {% if tx.status == 'completed' %}bg-success
+                                {% else %}bg-warning{% endif %}">
+                                {{ tx.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <!-- Support Tickets -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4><i class="fas fa-ticket-alt"></i> Open Support Tickets</h4>
+        </div>
+        <div class="card-body">
+             {% if open_tickets %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Subject</th>
+                            <th>User</th>
+                            <th>Attachments</th>
+                            <th>Created</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ticket in open_tickets %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'admin:ac_supportticket_change' ticket.id %}">
+                                    {{ ticket.subject|truncatechars:40 }}
+                                </a>
+                            </td>
+                            <td>{{ ticket.user.email }}</td>
+                            <td>{{ ticket.attachments.count }}</td>
+                            <td>{{ ticket.created_at|timesince }} ago</td>
+                            <td>
+                                <span class="badge 
+                                    {% if ticket.status == 'OPEN' %}bg-warning
+                                    {% elif ticket.status == 'IN_PROGRESS' %}bg-info
+                                    {% else %}bg-success{% endif %}">
+                                    {{ ticket.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info mb-0">
+                 No open support tickets
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+<!-- Add this before the broadcast modal -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5><i class="fas fa-users"></i> Broadcast Recipients</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="userTable">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="selectAll"></th>
+                            <th>Name</th>
+                            <th>Phone</th>
+                            <th>Role</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in valid_users %}
+                        <tr>
+                            <td><input type="checkbox" class="user-check" data-phone="{{ user.phone }}"></td>
+                            <td>{{ user.get_full_name }}</td>
+                            <td>{{ user.phone }}</td>
+                            <td>{{ user.get_user_type_display }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <!-- Broadcast Section -->
+    {% include 'admin/includes/broadcast_modal.html' %}
+    <button class="btn btn-success mb-4" data-bs-toggle="modal" data-bs-target="#broadcastModal">
+        <i class="fab fa-whatsapp"></i> Send Broadcast
+    </button>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'ac/js/whatsapp.js' %}"></script>
+<script src="{% static 'ac/js/admin.js' %}"></script>
+{% endblock %}

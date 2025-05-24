@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+from decouple import config
+
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -10,21 +12,35 @@ SECRET_KEY = 'django-insecure-03yxt(kwu%2)jmqm&((8cm)ghvjn1=tzb#v+4ex3*6v%ct%7da
 # Development mode
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+# Add production-ready database config
+DATABASES = {}
+if not DEBUG:
+    DATABASES['default'] = {}
+    DATABASES['default']['OPTIONS'] = {}
+    DATABASES['default']['OPTIONS']['init_command'] = "SET sql_mode='STRICT_ALL_TABLES', read_default_file='/etc/mysql/my.cnf'"
+    DATABASES['default']['CONN_MAX_AGE'] = 60
+ALLOWED_HOSTS = ['192.168.43.148','127.0.0.1', 'localhost']
+
 # For production, consider using: ALLOWED_HOSTS = ['yourdomain.com']
 
 # Application definition
 INSTALLED_APPS = [
+    'django.contrib.humanize',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
+    'crispy_forms',
+    'crispy_bootstrap5',
+    'widget_tweaks',
     'ac',  # Your custom app
     # Optional: use this instead if needed: 'ac.apps.AcConfig',
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -94,6 +110,7 @@ LOGGING = {
     }
 }
 
+
 # Authentication
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -118,8 +135,8 @@ LOGOUT_REDIRECT_URL = 'home'
 
 # Session and CSRF cookies
 SESSION_COOKIE_AGE = 3600  # 1 hour
-SESSION_COOKIE_SECURE = True  # Use HTTPS in production
-CSRF_COOKIE_SECURE = True     # Use HTTPS in production
+SESSION_COOKIE_SECURE = False  # Use HTTPS in production
+CSRF_COOKIE_SECURE = False     # Use HTTPS in production
 
 # Optional: brute-force protection
 RATELIMIT_LOGIN = '5/m'  # Requires django-ratelimit
@@ -149,12 +166,21 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Development placeholder
 DEBUG_PHONE_NUMBER = '+251900000000'
+SUPPORT_PHONE = '+251915451380'
 
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'groupo1ne@gmail.com'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_PASSWORD = config('GMAIL_PASSWORD')
 ########### note ##################
 #superuser admin information
 #"username: Group1
 #phone: +251915451380
 #email: group1@agri.com
-#password: 02062814#afihimz
+#password: agricom123
 # This is the superuser account for the admin panel.
 ###############################
