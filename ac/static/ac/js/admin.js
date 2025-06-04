@@ -1,130 +1,158 @@
-document.addEventListener('DOMContentLoaded', function () {
-    console.log('Admin JS initialized');
+// At the very top of admin.js
+if (typeof bootstrap === 'undefined') {
+    console.error('Bootstrap not loaded! Check script loading order');
+    alert('Critical error: Required libraries not loaded. Please refresh the page.');
+}
 
-    // Initialize DataTables with proper config
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin JS loaded - version 2.2');
+
+    // Initialize DataTables with DOM preservation
     const usersTable = $('#usersTable').DataTable({
         responsive: true,
         ordering: false,
         paging: false,
         searching: true,
         info: false,
-        // Critical for dynamic content
-        drawCallback: function(settings) {
-            console.log('Table redrawn - reattaching listeners');
-            attachEventListeners();
+        dom: 't',
+        autoWidth: false,
+        destroy: false,
+        retrieve: true,
+        columnDefs: [
+            { 
+                targets: 3, 
+                orderable: false,
+                render: function(data, type, row) {
+                    return $('<div>').html(data).html();
+                }
+            }
+        ],
+        createdRow: function(row, data, index) {
+        // Re-initialize tooltips for each row
+        $(row).find('[data-bs-toggle="tooltip"]').tooltip();
+    }
+    });
+
+    // ===== User Status Toggle =====
+    // jQuery form submission handler
+    $('body').on('submit', '.toggle-status-form', function(e) {
+        e.preventDefault();
+        const form = $(this);
+        
+        $.ajax({
+            type: "POST",
+            url: form.attr('action'),
+            data: form.serialize(),
+            success: function(data) {
+                if(data.success) {
+                    const button = form.find('button');
+                    const isActive = data.is_active;
+                    
+                    // Update button styling
+                    button.toggleClass('btn-danger btn-success', !isActive);
+                    button.html(isActive ? 
+                        '<i class="fas fa-ban"></i>' : 
+                        '<i class="fas fa-check"></i>');
+
+                    // Update status badge
+                    const badge = form.closest('tr').find('.user-status');
+                    badge.toggleClass('bg-success bg-danger', !isActive)
+                          .text(isActive ? 'Active' : 'Suspended');
+                    
+                    showToast(`User ${isActive ? 'activated' : 'suspended'} successfully`, 'success');
+                }
+            },
+            error: function(xhr) {
+                showToast(`Error: ${xhr.statusText}`, 'danger');
+            }
+        });
+    });
+
+    // ===== View User Modal =====
+    document.addEventListener('click', function(event) {
+        if (event.target.closest('.view-user')) {
+            const button = event.target.closest('.view-user');
+            console.log('View button clicked for user:', button.dataset.userId);
+            handleViewUser(button);
         }
     });
 
-    // Initial attachment
-    attachEventListeners();
-
-    // Event delegation for dynamic content
-    document.body.addEventListener('click', function(event) {
-        if (event.target.closest('.toggle-status')) {
-            console.log('Delegated toggle click');
-            handleToggleStatus(event.target.closest('.toggle-status'));
-        }
-        
-        if (event.target.closest('.view-user')) {
-            console.log('Delegated view click');
-            handleViewUser(event.target.closest('.view-user'));
-        }
+    // ===== Product Preview =====
+    // Keep existing product preview handler
+    document.querySelectorAll('.product-preview').forEach(link => {
+        link.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const productId = e.target.dataset.productId;
+            
+            try {
+                const response = await fetch(`/custom-admin/moderate-product/${productId}/`);
+                const product = await response.json();
+                
+                // Populate modal
+                document.getElementById('productPreviewName').textContent = product.name;
+                document.getElementById('productPreviewSeller').textContent = product.seller;
+                document.getElementById('productPreviewPrice').textContent = `${product.price} ETB`;
+                document.getElementById('productPreviewCategory').textContent = product.category;
+                document.getElementById('productPreviewDescription').textContent = product.description;
+                document.getElementById('productPreviewCreated').textContent = product.created_at;
+                
+                const imgElement = document.getElementById('productPreviewImage');
+                if (product.image_url) {
+                    imgElement.src = product.image_url;
+                    imgElement.parentElement.style.display = 'block';
+                } else {
+                    imgElement.parentElement.style.display = 'none';
+                }
+                
+                new bootstrap.Modal(document.getElementById('productPreviewModal')).show();
+            } catch (error) {
+                console.error('Error loading product details:', error);
+            }
+        });
     });
 });
 
-// Core Functions
-function handleToggleStatus(button) {
-    console.log('Toggle button:', button);
-    if (!button) {
-        console.error('No button found');
-        return;
-    }
-
+// ===== View User Functions =====
+function handleViewUser(button) {
     const userId = button.dataset.userId;
-    console.log(`Toggling user ${userId}`);
+    const modalEl = document.getElementById('userModal');
+    
+    // Initialize modal fresh each time
+    const modal = new bootstrap.Modal(modalEl, {
+        backdrop: true,
+        keyboard: true,
+        focus: true
+    });
 
-    fetch(`/custom-admin/users/${userId}/toggle/`, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': getCookie('csrftoken'),
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
+    // Clear previous content
+    modalEl.querySelectorAll('[id^="user-"]').forEach(el => {
+        el.textContent = 'Loading...';
+    });
+
+    fetch(`/custom-admin/users/${userId}/`)
     .then(response => {
-        console.log(`Response status: ${response.status}`);
-        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
         return response.json();
     })
     .then(data => {
-        console.log('Response data:', data);
-        if (data.success) {
-            updateUserInterface(button, data.is_active);
-            showToast('Status updated successfully', 'success');
-        }
+        // Update modal content
+        const formatDate = (iso) => iso ? new Date(iso).toLocaleString() : 'Never';
+        
+        document.getElementById('user-fullname').textContent = data.full_name || 'N/A';
+        document.getElementById('user-email').textContent = data.email || 'N/A';
+        document.getElementById('user-phone').textContent = data.phone || 'N/A';
+        document.getElementById('user-registered').textContent = formatDate(data.date_joined);
+        document.getElementById('user-lastlogin').textContent = formatDate(data.last_login);
+        
+        // Show modal after DOM update
+        modal.show();
     })
     .catch(error => {
         console.error('Error:', error);
-        showToast(`Error: ${error.message}`, 'danger');
+        showToast('Failed to load user details', 'danger');
     });
 }
-
-function updateUserInterface(button, isActive) {
-    // Update button
-    button.classList.toggle('btn-danger', !isActive);
-    button.classList.toggle('btn-success', isActive);
-    button.innerHTML = isActive ? '<i class="fas fa-ban"></i>' : '<i class="fas fa-check"></i>';
-
-    // Update badge
-    const badge = button.closest('tr').querySelector('.user-status');
-    if (badge) {
-        badge.textContent = isActive ? 'Active' : 'Suspended';
-        badge.classList.toggle('bg-success', isActive);
-        badge.classList.toggle('bg-danger', !isActive);
-    } else {
-        console.error('Badge not found');
-    }
-}
-
-function attachEventListeners() {
-    console.log('Attaching event listeners');
-    
-    // Direct listeners for initial elements
-    document.querySelectorAll('.toggle-status').forEach(button => {
-        button.addEventListener('click', () => {
-            console.log('Direct toggle click');
-            handleToggleStatus(button);
-        });
-    });
-
-    document.querySelectorAll('.view-user').forEach(button => {
-        button.addEventListener('click', () => {
-            console.log('Direct view click');
-            handleViewUser(button);
-        });
-    });
-}
-
 // ===== Helper Functions =====
-function attachUserEventListeners() {
-    // Manually attach to existing elements
-    document.querySelectorAll('.toggle-status').forEach(button => {
-        button.addEventListener('click', () => handleToggleStatus(button));
-    });
-    document.querySelectorAll('.view-user').forEach(button => {
-        button.addEventListener('click', () => handleViewUser(button));
-    });
-}
-
-function populateUserModal(data) {
-    document.getElementById('user-fullname').textContent = data.full_name || 'N/A';
-    document.getElementById('user-email').textContent = data.email || 'N/A';
-    document.getElementById('user-phone').textContent = data.phone || 'N/A';
-    document.getElementById('user-registered').textContent = 
-        data.date_joined ? new Date(data.date_joined).toLocaleString() : 'N/A';
-    document.getElementById('user-lastlogin').textContent = 
-        data.last_login ? new Date(data.last_login).toLocaleString() : 'Never';
-}
-
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -163,3 +191,36 @@ function showToast(message, type = 'success') {
     // Auto-remove after 5 seconds
     setTimeout(() => toast.remove(), 5000);
 }
+
+// Product Preview Handler
+document.querySelectorAll('.product-preview').forEach(link => {
+    link.addEventListener('click', async (e) => {
+        e.preventDefault()
+        const productId = e.target.dataset.productId
+        
+        try {
+            const response = await fetch(`/custom-admin/moderate-product/${productId}/`)
+            const product = await response.json()
+            
+            // Populate modal
+            document.getElementById('productPreviewName').textContent = product.name
+            document.getElementById('productPreviewSeller').textContent = product.seller
+            document.getElementById('productPreviewPrice').textContent = `${product.price} ETB`
+            document.getElementById('productPreviewCategory').textContent = product.category
+            document.getElementById('productPreviewDescription').textContent = product.description
+            document.getElementById('productPreviewCreated').textContent = product.created_at
+            
+            const imgElement = document.getElementById('productPreviewImage')
+            if (product.image_url) {
+                imgElement.src = product.image_url
+                imgElement.parentElement.style.display = 'block'
+            } else {
+                imgElement.parentElement.style.display = 'none'
+            }
+            
+            new bootstrap.Modal(document.getElementById('productPreviewModal')).show()
+        } catch (error) {
+            console.error('Error loading product details:', error)
+        }
+    })
+})

@@ -12,12 +12,29 @@
   <h1 class="mb-4">Contact Us</h1>
 
   <div class="row">
+    <!-- Left Column - Contact Info & Map -->
     <div class="col-md-6 mb-4">
-      <h5>Get in Touch</h5>
-      <p><strong>Email:</strong> <a href="mailto:groupo1ne@gmail.com">groupo1ne@gmail.com</a></p>
-      <p><strong>Phone:</strong> <a href="tel:+251915451380">+251 915 451 380</a></p>
-      <p><strong>Address:</strong> GBBSS, Akaki-Kality, Addis Ababa</p>
+      <div class="mb-5">
+        <h5>Get in Touch</h5>
+        <p><strong>Email:</strong> <a href="mailto:groupo1ne@gmail.com">groupo1ne@gmail.com</a></p>
+        <p><strong>Phone:</strong> <a href="tel:+251915451380">+251 915 451 380</a></p>
+        <p><strong>Address:</strong> GBBSS, Akaki-Kality, Addis Ababa</p>
+        <a href="https://www.google.com/maps/dir//GBBSS,+Akaki-Kality,+Addis+Ababa/@8.952574,38.992344,17z/data=!4m6!4m5!1m0!1m2!1m1!1s0x164b85b2c9697d4f:0x9e5e3a4b7f4a4d0!3e0?entry=ttu" target="_blank" 
+                    class="btn btn-outline-primary mt-3">
+                            <i class="bi bi-geo-alt"></i> Get Directions
+        </a>
+      </div>
+
+      <!-- Google Map Embed -->
+      <div class="map-container rounded shadow-sm" style="height: 300px; overflow: hidden;">
+        <iframe src="https://www.google.com/maps/embed?pb=!1m24!1m12!1m3!1d3295.1274317339553!2d38.78700034839974!3d8.894957200000011!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m9!3e6!4m3!3m2!1d8.8950187!2d38.7885716!4m3!3m2!1d8.9352646!2d38.812630399999996!5e1!3m2!1sen!2set!4v1748284897499!5m2!1sen!2set"
+         width="600" height="450" 
+         style="border:0;" allowfullscreen="" 
+         loading="lazy" 
+         referrerpolicy="no-referrer-when-downgrade"></iframe>
+      </div>
     </div>
+
     <div class="col-md-6">
       <form id="contactForm" method="post" action="{% url 'contact' %}">
         {% csrf_token %}
@@ -47,6 +64,15 @@
           {{ form.subject.errors }}
         </div>
 
+        <!-- Custom Subject Field (hidden by default) -->
+        <div class="mb-3" id="customSubjectWrapper" style="display: none;">
+          <label for="{{ form.custom_subject.id_for_label }}" class="form-label">
+            {{ form.custom_subject.label }}
+          </label>
+          {{ form.custom_subject }}
+          {{ form.custom_subject.errors }}
+        </div>
+
         <div class="mb-3">
           <label for="{{ form.message.id_for_label }}" class="form-label">
             {{ form.message.label }}
@@ -62,4 +88,29 @@
     </div>
   </div>
 </div>
+
+<script>
+document.getElementById('id_subject').addEventListener('change', function() {
+    const wrapper = document.getElementById('customSubjectWrapper');
+    const customInput = document.getElementById('id_custom_subject');
+    
+    if (this.value === 'other') {
+        wrapper.style.display = 'block';
+        customInput.required = true;  // Optional: Make mandatory when visible
+    } else {
+        wrapper.style.display = 'none';
+        customInput.required = false; // Optional: Remove requirement
+        customInput.value = '';       // Clear previous input
+    }
+});
+
+// Initialize on page load (for form validation re-display)
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectField = document.getElementById('id_subject');
+    const wrapper = document.getElementById('customSubjectWrapper');
+    if (subjectField.value === 'other') {
+        wrapper.style.display = 'block';
+    }
+});
+</script>
 {% endblock %}

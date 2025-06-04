@@ -48,9 +48,9 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'ac.middleware.RefreshUserMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-
     'ac.middleware.TransactionAccessMiddleware',  # Custom middleware
 ]
 
@@ -86,31 +86,36 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '3306',
         'OPTIONS': {
-            'init_command': "SET sql_mode='STRICT_ALL_TABLES'",
+            'init_command': "SET sql_mode='NO_ENGINE_SUBSTITUTION'",  # Changed
             'charset': 'utf8mb4',
         },
         'CONN_MAX_AGE': 300,
     }
 }
-
 # Logging (mostly useful for development and debugging DB queries)
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+    },
     'handlers': {
         'console': {
-            'level': 'DEBUG',
             'class': 'logging.StreamHandler',
-        }
+            'formatter': 'verbose',
+        },
     },
     'loggers': {
-        'django.db.backends': {
-            'level': 'DEBUG',
+        'ac': {
             'handlers': ['console'],
-        }
-    }
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
 }
-
-
 # Authentication
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -138,6 +143,8 @@ SESSION_COOKIE_AGE = 3600  # 1 hour
 SESSION_COOKIE_SECURE = False  # Use HTTPS in production
 CSRF_COOKIE_SECURE = False     # Use HTTPS in production
 
+CSRF_COOKIE_HTTPONLY = False  # Allows JavaScript to read the CSRF token
+CSRF_USE_SESSIONS = False     # Uses cookies (default)
 # Optional: brute-force protection
 RATELIMIT_LOGIN = '5/m'  # Requires django-ratelimit
 
@@ -169,13 +176,14 @@ DEBUG_PHONE_NUMBER = '+251900000000'
 SUPPORT_PHONE = '+251915451380'
 
 
+# settings.py
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'groupo1ne@gmail.com'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-EMAIL_HOST_PASSWORD = config('GMAIL_PASSWORD')
+EMAIL_HOST_USER = 'groupo1ne@gmail.com'  # Your exact Gmail address
+EMAIL_HOST_PASSWORD = 'kept thxd zcks mfft'  # Paste the 16-character app password here
+#passkey agricom
 ########### note ##################
 #superuser admin information
 #"username: Group1

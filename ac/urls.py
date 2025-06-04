@@ -72,10 +72,12 @@ urlpatterns = [
     # Custom Admin Dashboard
     #path('custom-admin/dashboard/', login_required(views.admin_dashboard), name='admin_dashboard'),
 
-    path('custom-admin/dashboard/', views.admin_dashboard, name='admin_dashboard'),
-    path('custom-admin/users/<int:user_id>/toggle/', views.toggle_user_status, name='toggle_user_status'),
-    path('custom-admin/moderate-product/<int:product_id>/', views.moderate_product, name='moderate_product'),
-    path('custom-admin/users/<int:user_id>/', views.user_detail, name='user_detail'),
+    path('custom-admin/', include([
+        path('dashboard/', views.admin_dashboard, name='admin_dashboard'),
+        path('users/<int:user_id>/toggle/', views.toggle_user_status, name='admin_toggle_user'),
+        path('users/<int:user_id>/', views.user_detail, name='admin_user_detail'),
+        path('moderate-product/<int:product_id>/', views.moderate_product, name='moderate_product'),
+    ])),
 
     # Default Django Admin
     path('admin/', admin.site.urls),
@@ -83,9 +85,13 @@ urlpatterns = [
     path('logistics/', include([
     path('dashboard/', login_required(views.logistics_dashboard), name='logistics_dashboard'),
     path('profile/edit/', login_required(views.logistics_edit_profile), name='logistics_edit_profile'),
-    path('jobs/<int:job_id>/accept/', login_required(views.accept_job), name='accept_job'),
     path('jobs/<int:job_id>/complete/', login_required(views.complete_job), name='complete_job'),
     ])),  
+    path('jobs/<int:job_id>/accept/', views.accept_job, name='accept_job'),
+    path('jobs/<int:job_id>/reject/', views.reject_job, name='reject_job'),
+    path('logistics-providers/', views.logistics_providers, name='logistics_providers'),
+    path('jobs/<int:job_id>/', views.job_details, name='job_details'),
+
     # Buyer Routes
     path('buyer/', include([
         path('dashboard/', login_required(views.buyer_dashboard), name='buyer_dashboard'),
@@ -96,7 +102,7 @@ urlpatterns = [
         path('orders/<int:order_id>/cancel/', login_required(views.cancel_order), name='cancel_order'),
         path('orders/', views.order_history, name='order_history'),
         path('orders/<int:transaction_id>/confirm-delivery/', login_required(views.confirm_delivery), name='confirm_delivery'),
-        path('wallet/add-funds/', login_required(views.add_funds), name='add_funds'),
+        #path('wallet/add-funds/', login_required(views.add_funds), name='add_funds'),
         path('addresses/', login_required(views.manage_addresses), name='manage_addresses'),
         path('support/ticket/', login_required(views.create_support_ticket), name='create_support_ticket'),
         ])),
@@ -111,7 +117,6 @@ urlpatterns = [
     path('terms/', views.terms_of_service, name='terms_of_service'),
     path('privacy/', views.privacy_policy, name='privacy_policy'),
     path('help/', views.help_center, name='help'),
-    path('contact/', views.contact_support, name='contact'),
     path('resources/', views.farming_resources, name='resources'),
     
     # Utilities

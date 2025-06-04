@@ -9,12 +9,13 @@ from io import BytesIO
 from uuid import uuid4
 from django.urls import reverse
 import requests
-from .forms import AddFundsForm, CurrencyConvertForm, DeliveryConfirmationForm, JobCompletionForm, LogisticsProfileForm, SupportTicketForm
+from .forms import CurrencyConvertForm, DeliveryConfirmationForm, JobCompletionForm, LogisticsProfileForm, SupportTicketForm, WalletTopupForm
 from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
 from django.contrib.auth import login as auth_login, logout
 from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
 from django.db import IntegrityError, transaction
 from django.db.models import Sum, Q
 from django.db.models.functions import TruncMonth
@@ -30,18 +31,20 @@ from ac.forms import (
     BuyerProfileForm
 )
 from ac.models import (
-    DeliveryJob, EscrowTransaction, LogisticsProfile, 
+    City, DeliveryJob, EscrowTransaction, LogisticsProfile, Order, 
     Product, SupportTicket, User, BuyerProfile, SupplierProfile, FarmerProfile,
     Notification, TransactionUpdate, WishlistItem,
     WalletTransaction, ProductCategory
 )
 # ------------------------- Utility Functions -------------------------
-def create_notification(user, message, notification_type='SYSTEM'):
-    """Simple notification creator"""
+def create_notification(user, message, notification_type='SYSTEM', related_url=None, delivery_job=None):
+    """Create notification with proper relationships"""
     Notification.objects.create(
         user=user,
         message=message,
-        notification_type=notification_type
+        notification_type=notification_type,
+        related_url=related_url,
+        delivery_job=delivery_job
     )
 
 def validate_farmer_access(user):
@@ -260,7 +263,6 @@ def product_detail(request, product_id):
     return render(request, 'products/detail.html', {'product': product})
 
 # ------------------------- Admin Dashboard -------------------------
-from django.utils import timezone  # Ensure this import is present
 
 @login_required
 def admin_dashboard(request):
@@ -288,47 +290,53 @@ def admin_dashboard(request):
     recent_transactions = EscrowTransaction.objects.select_related(
         'buyer', 'seller'
     ).order_by('-created_at')[:5]
-    pending_products = Product.objects.filter(is_approved=False)
     open_tickets = SupportTicket.objects.filter(status='OPEN')
 
     return render(request, 'admin/dashboard.html', {
         'stats': stats,
         'recent_users': recent_users,
         'recent_transactions': recent_transactions,
-        'pending_products': pending_products,
+        'pending_products': Product.objects.filter(is_approved=False).select_related('seller')[:10],
         'open_tickets': open_tickets,
         'valid_users': valid_users,
         'support_tickets': support_tickets
     })
 
+@require_POST
 @login_required
 def toggle_user_status(request, user_id):
     if not request.user.is_superuser:
-        return JsonResponse({'success': False, 'error': 'Forbidden'}, status=403)
+        return HttpResponseForbidden()
     
     user = get_object_or_404(User, pk=user_id)
     user.is_active = not user.is_active
     user.save()
     
     return JsonResponse({
-        'success': True,
-        'is_active': user.is_active
+        'success': True, 
+        'is_active': user.is_active,
+        'new_status': 'Active' if user.is_active else 'Suspended',
+        'new_class': 'bg-success' if user.is_active else 'bg-danger'
     })
+
 @login_required
 def user_detail(request, user_id):
     if not request.user.is_superuser:
         return JsonResponse({'error': 'Forbidden'}, status=403)
     
-    user = get_object_or_404(User, pk=user_id)
-    return JsonResponse({
-        'full_name': user.get_full_name(),
-        'email': user.email,
-        'phone': user.phone,
-        'date_joined': user.date_joined.isoformat(),
-        'last_login': user.last_login.isoformat() if user.last_login else None,
-        'is_active': user.is_active,
-        'user_type': user.get_user_type_display()
-    })
+    try:
+        user = User.objects.get(pk=user_id)
+        return JsonResponse({
+            'full_name': user.get_full_name(),
+            'email': user.email,
+            'phone': user.phone,
+            'date_joined': user.date_joined.isoformat(),
+            'last_login': user.last_login.isoformat() if user.last_login else None,
+            'is_active': user.is_active,
+            'user_type': user.get_user_type_display()
+        })
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
 
 @login_required
 def moderate_product(request, product_id):
@@ -336,15 +344,38 @@ def moderate_product(request, product_id):
         return HttpResponseForbidden()
     
     product = get_object_or_404(Product, pk=product_id)
+    
     if request.method == 'POST':
         action = request.POST.get('action')
+        
         if action == 'approve':
             product.is_approved = True
+            product.is_active = True
+            messages.success(request, f'Product "{product.name}" approved')
         elif action == 'reject':
             product.is_approved = False
+            product.is_active = False
+            messages.warning(request, f'Product "{product.name}" rejected')
+        elif action == 'delete':
+            product_name = product.name
+            product.delete()
+            messages.success(request, f'Product "{product_name}" permanently deleted')
+            return redirect('admin_dashboard')
+        
         product.save()
-    return redirect('admin_dashboard')
-
+        return redirect('admin_dashboard')
+    
+    # GET request handling for preview
+    return JsonResponse({
+        'id': product.id,
+        'name': product.name,
+        'seller': product.seller.email,
+        'price': str(product.price),
+        'category': product.get_category_display(),
+        'description': product.description,
+        'image_url': product.image.url if product.image else '',
+        'created_at': product.created_at.strftime("%b %d, %Y %H:%M")
+    })
 # ------------------------- common Dashboard -------------------------
 def common_dashboard_setup(request):
     return {
@@ -355,6 +386,9 @@ def common_dashboard_setup(request):
 @login_required
 def farmer_dashboard(request):
     """Farmer-specific dashboard with agricultural focus"""
+        # Force refresh user data from database
+    request.user.refresh_from_db()
+    profile, created = FarmerProfile.objects.get_or_create(user=request.user)
     if not validate_farmer_access(request.user):
         return HttpResponseForbidden("Access restricted to registered farmers")
     
@@ -591,7 +625,8 @@ def clean_stock_quantity(self):
 @login_required
 def initiate_payment(request, product_id):
     product = get_object_or_404(Product, pk=product_id)
-    
+    cities = City.objects.all()
+
     if product.seller == request.user:
         messages.error(request, "You cannot purchase your own product")
         return redirect('product_detail', product_id=product_id)
@@ -599,57 +634,114 @@ def initiate_payment(request, product_id):
     return render(request, 'payments/initiate.html', {
         'product': product,
         'user_balance': request.user.wallet_balance,
-        'product_price': product.price
+        'product_price': product.price,
+        'cities': cities,
+        'balance_sufficient': request.user.wallet_balance >= product.price
     })
-
 @login_required
 @transaction.atomic
 def process_payment(request, product_id):
     if request.method != 'POST':
         return redirect('initiate_payment', product_id=product_id)
-    
+
     product = get_object_or_404(Product, pk=product_id)
     user = request.user
-    
+
     try:
         quantity = int(request.POST.get('quantity', 1))
-        total_price = product.price * quantity
-        
+        logistics_id = request.POST.get('logistics')
+
         if quantity < 1:
             raise ValueError("Quantity must be at least 1")
-        if user.wallet_balance < total_price:
-            needed = total_price - user.wallet_balance
-            messages.error(request, 
+
+        # Calculate base amount (product price * quantity)
+        base_amount = product.price * quantity
+
+        # Calculate delivery cost if logistics is selected
+        delivery_cost = Decimal('0.00')
+        if logistics_id:
+            logistics = get_object_or_404(User, pk=logistics_id)
+            price_per_km = Decimal(str(logistics.logisticsprofile.price_per_km))
+            distance_km = Decimal('10.0')  # Example distance
+            delivery_cost = (price_per_km * distance_km).quantize(Decimal('0.00'))
+
+        # Calculate platform fee (2.5% of base amount)
+        platform_fee = (base_amount * Decimal('0.025')).quantize(Decimal('0.00'))
+
+        # Total charge to buyer (base + delivery + fee)
+        total_charge = base_amount + delivery_cost + platform_fee
+
+        # Validate buyer balance
+        if user.wallet_balance < total_charge:
+            needed = total_charge - user.wallet_balance
+            messages.error(request,
                 f"Insufficient balance. You need {needed:.2f} ETB more for {quantity} items"
             )
             return redirect('initiate_payment', product_id=product_id)
-            
+
+        # Validate stock
         if product.stock_quantity < quantity:
-            messages.error(request, 
+            messages.error(request,
                 f"Only {product.stock_quantity} items available in stock"
             )
             return redirect('initiate_payment', product_id=product_id)
-        # Deduct funds
-        user.wallet_balance -= total_price
+
+        # Deduct funds from buyer
+        user.wallet_balance -= total_charge
         user.save()
-        
-        # Create transaction
+
+        # Create escrow transaction (product amount + fee)
         transaction = EscrowTransaction.objects.create(
             buyer=user,
             seller=product.seller,
             product=product,
             quantity=quantity,
-            amount=total_price,
+            amount=base_amount,  # This is just the product amount
+            platform_fee=platform_fee,
             status='held',
             telebirr_reference=f"TX-{uuid4().hex[:8].upper()}"
         )
-        
+
         # Update stock
         product.stock_quantity -= quantity
         product.save()
-        
+
+        # Create order with logistics info
+        order = Order.objects.create(
+            product=product,
+            quantity=quantity,
+            logistics=logistics if logistics_id else None,
+            delivery_cost=delivery_cost
+        )
+
+        # Handle delivery job if logistics selected
+        if logistics_id:
+            pickup_time = timezone.now() + timedelta(hours=2)
+            pickup_location = getattr(product.seller, 'farmerprofile', getattr(product.seller, 'supplierprofile', None))
+            if pickup_location:
+                pickup_location = pickup_location.location
+            else:
+                pickup_location = "Seller Location Not Specified"
+            
+            job = DeliveryJob.objects.create(
+                provider=logistics,
+                client=user,
+                pickup_location=pickup_location,
+                dropoff_location=user.buyerprofile.primary_address,
+                payment_amount=delivery_cost * Decimal('0.9'),  # 10% platform fee
+                pickup_time=pickup_time,
+                status='PENDING'
+            )
+            
+            create_notification(
+                user=logistics,
+                message=f"New delivery request for {product.name} from {user.get_full_name()} - Pickup at {pickup_time.strftime('%b %d, %H:%M')}",
+                notification_type='DELIVERY',
+                related_url=reverse('logistics_dashboard')
+            )
+
         return redirect('payment_success', transaction_id=transaction.id)
-    
+
     except Exception as e:
         messages.error(request, f"Payment failed: {str(e)}")
         return redirect('initiate_payment', product_id=product_id)
@@ -680,26 +772,34 @@ def transaction_detail(request, transaction_id):
     })
 
 # ------------------------- Wallet System -------------------------
-# views.py - Update wallet_topup view
 @login_required
 def wallet_topup(request):
     if request.method == 'POST':
-        try:
-            amount = Decimal(request.POST.get('amount', 0))
-            if amount <= 0:
-                messages.error(request, "Amount must be positive")
+        form = WalletTopupForm(request.POST, request.FILES)
+        if form.is_valid():
+            try:
+                # Save will automatically add funds through model's save()
+                topup = form.save(commit=False)
+                topup.user = request.user
+                topup.save()
+                
+                messages.success(request, 
+                    f"Successfully added {topup.amount} ETB to your wallet. "
+                    f"New balance: {request.user.wallet_balance} ETB"
+                )
                 return redirect('wallet_topup')
             
-            request.user.add_wallet(amount)
-            messages.success(request, f"Added {amount} ETB to your wallet")
-            return redirect('wallet_topup')
-        
-        except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
-            return redirect('wallet_topup')
+            except Exception as e:
+                messages.error(request, f"Error processing top-up: {str(e)}")
+        else:
+            messages.error(request, "Please correct the errors below")
+    else:
+        form = WalletTopupForm()
 
-    # GET request handling
-    return render(request, 'payments/wallet_topup.html')   
+    return render(request, 'payments/wallet_topup.html', {
+        'form': form,
+        'current_balance': request.user.wallet_balance
+    })
 # ------------------------- Static Pages -------------------------
 def about_us(request):
     stats = {
@@ -713,8 +813,6 @@ def about_us(request):
 
 def help_center(request):
     return render(request, 'help.html')
-def contact_support(request):
-    return render(request, 'contact.html')
 def farming_resources(request):
     return render(request, 'resources.html')
 def blog(request):
@@ -809,25 +907,38 @@ def currency_converter(request):
         'error': error,
     })
 
-# views.py
+# ------------------------- Logistics Views -------------------------
+
 @login_required
 def logistics_dashboard(request):
     profile, created = LogisticsProfile.objects.get_or_create(user=request.user)
     if not request.user.is_logistics:
         return HttpResponseForbidden("Logistics access required")
     
-    jobs = DeliveryJob.objects.filter(provider=request.user)
+    # Get all jobs for the provider
+    jobs = DeliveryJob.objects.filter(provider=request.user).order_by('-created_at')
+    
+    # Get unread delivery notifications
+    delivery_notifications = Notification.objects.filter(
+        user=request.user,
+        notification_type='DELIVERY',
+        is_read=False
+    )
+    
+    # Mark notifications as read when viewed
+    delivery_notifications.update(is_read=True)
+
     # Dashboard metrics
-    total_earnings = jobs.filter(status='completed').aggregate(
+    total_earnings = jobs.filter(status='COMPLETED').aggregate(
         Sum('payment_amount'))['payment_amount__sum'] or 0
-    pending_jobs = jobs.filter(status='pending').count()
+    pending_jobs = jobs.filter(status='PENDING').count()
     
     return render(request, 'logistics/dashboard.html', {
-        'profile':profile,
+        'profile': profile,
         'jobs': jobs,
         'total_earnings': total_earnings,
         'pending_jobs': pending_jobs,
-        'upcoming_jobs': jobs.filter(status__in=['accepted', 'in_transit']),
+        'upcoming_jobs': jobs.exclude(status__in=['COMPLETED', 'CANCELLED']),
         'SUPPORT_PHONE': '+251915451380',
         **common_dashboard_setup(request)
     })
@@ -853,21 +964,39 @@ def logistics_edit_profile(request):
         'notifications': notifications,
         })
 
-
+@login_required
+def job_details(request, job_id):
+    job = get_object_or_404(DeliveryJob, id=job_id, provider=request.user)
+    return render(request, 'logistics/job_details.html', {'job': job})
 @login_required
 def accept_job(request, job_id):
-    job = get_object_or_404(DeliveryJob, id=job_id, status='PENDING')
+    job = get_object_or_404(DeliveryJob, id=job_id, provider=request.user, status='PENDING')
     job.status = 'ACCEPTED'
-    job.provider = request.user
     job.save()
+    
     create_notification(
-        user=request.user,
-        message=f"New delivery to {Address}",
+        user=job.client,
+        message=f"{request.user.get_full_name()} accepted your delivery request",
         notification_type='DELIVERY'
     )
+    
     messages.success(request, "Job accepted successfully!")
-    return redirect('logistics_dashboard')
+    return redirect('job_details', job_id=job_id)
 
+@login_required
+def reject_job(request, job_id):
+    job = get_object_or_404(DeliveryJob, id=job_id, provider=request.user, status='PENDING')
+    job.status = 'CANCELLED'
+    job.save()
+    
+    create_notification(
+        user=job.client,
+        message=f"{request.user.get_full_name()} rejected your delivery request",
+        notification_type='DELIVERY'
+    )
+    
+    messages.warning(request, "Job rejected successfully!")
+    return redirect('logistics_dashboard')
 @login_required
 def complete_job(request, job_id):
     job = get_object_or_404(DeliveryJob, id=job_id, provider=request.user)
@@ -885,10 +1014,110 @@ def complete_job(request, job_id):
             messages.success(request, "Job marked as completed!")
             return redirect('logistics_dashboard')
     return redirect('logistics_dashboard')
+@login_required
+def checkout(request, product_id):
+    product = get_object_or_404(Product, pk=product_id)
+    cities = City.objects.all()
+
+    if request.method == 'POST':
+        # Get selected logistics provider
+        logistics_id = request.POST.get('logistics')
+        city_id = request.POST.get('delivery_city')
+        if not city_id:
+            messages.error(request, "Please select delivery city")
+            return redirect('checkout', product_id=product_id)
+            # Save city to buyer profile
+        buyer_profile = request.user.buyerprofile
+        buyer_profile.delivery_city = City.objects.get(id=city_id)
+        buyer_profile.save()
+        
+        if logistics_id:
+            logistics = get_object_or_404(User, pk=logistics_id)
+            # Simple distance calculation (implement real logic)
+            delivery_cost = logistics.logisticsprofile.price_per_km * 10  # 10km default
+            
+            # Create order
+            order = Order.objects.create(
+                buyer=request.user,
+                product=product,
+                logistics=logistics,
+                delivery_cost=delivery_cost
+            )
+            
+            # Create delivery job
+            DeliveryJob.objects.create(
+                provider=logistics,
+                client=request.user,
+                pickup_location=product.seller.farmerprofile.location,
+                dropoff_location=request.user.buyerprofile.primary_address,
+                payment_amount=delivery_cost * 0.9  # 10% platform fee
+            )
+            
+            # Notifications
+            create_notification(
+                user=logistics,
+                message=f"New delivery request from {request.user.get_full_name()}",
+                notification_type='DELIVERY'
+            )
+            create_notification(
+                user=request.user,
+                message=f"Delivery request sent to {logistics.get_full_name()}",
+                notification_type='DELIVERY'
+            )
+            
+            return redirect('order_confirmation', order.id)
+    
+    # Get available logistics providers
+    logistics_providers = User.objects.filter(
+        user_type='LOGISTICS',
+        logisticsprofile__service_areas__icontains=product.seller.farmerprofile.location
+    )
+    # Get available cities
+    cities = City.objects.all()
+    return render(request, 'checkout.html', {
+        'product': product,
+        'logistics_options': logistics_providers,
+        'cities': cities
+    })
+
+
+def logistics_providers(request):
+    city_id = request.GET.get('city')
+    providers = []
+
+    # Get nationwide providers
+    nationwide_providers = User.objects.filter(
+        logisticsprofile__nationwide=True,
+        logisticsprofile__isnull=False
+    ).distinct()
+
+    # Get city-specific providers
+    city_providers = User.objects.filter(
+        logisticsprofile__service_areas__id=city_id,
+        logisticsprofile__isnull=False
+    ).distinct()
+
+    # Combine both querysets
+    all_providers = nationwide_providers | city_providers
+    
+    for provider in all_providers.distinct():
+        profile = provider.logisticsprofile
+        providers.append({
+            'id': provider.id,
+            'name': provider.get_full_name(),
+            'vehicle_type': profile.get_vehicle_type_display(),
+            'price_per_km': float(profile.price_per_km),
+            'service_areas': "Nationwide" if profile.nationwide else ", ".join(
+                [city.get_name_display() for city in profile.service_areas.all()]
+            )
+        })
+    
+    return JsonResponse(providers, safe=False)
 
 # BUYER DASHBOARD
 @login_required
 def buyer_dashboard(request):
+    request.user.refresh_from_db()
     if not request.user.is_buyer:
         return HttpResponseForbidden("Buyer access required")
     
@@ -1004,29 +1233,6 @@ def buyer_edit_profile(request):
         'user_form': user_form,
         'profile_form': profile_form
     })
-
-@login_required
-def add_funds(request):
-    if request.method == 'POST':
-        form = AddFundsForm(request.POST)
-        if form.is_valid():
-            # Process payment gateway integration here
-            amount = form.cleaned_data['amount']
-            # Add to wallet after successful payment
-            request.user.wallet_balance += amount
-            request.user.save()
-            WalletTransaction.objects.create(
-                user=request.user,
-                amount=amount,
-                transaction_type='DEPOSIT'
-            )
-            messages.success(request, f"Successfully added {amount} ETB to wallet")
-            return redirect('buyer_dashboard')
-    else:
-        form = AddFundsForm()
-    
-    return render(request, 'buyer/add_funds.html', {'form': form})
-
 @login_required
 def cancel_order(request, order_id):
     order = get_object_or_404(EscrowTransaction, id=order_id, buyer=request.user)
@@ -1201,27 +1407,38 @@ def contact_us(request):
     if request.method == 'POST':
         form = ContactForm(request.POST)
         if form.is_valid():
-            # send email
             cd = form.cleaned_data
-            subject = cd['subject'] or f"New message from {cd['name']}"
+            subject_mapping = {
+                'general': 'General Inquiry',
+                'support': 'Technical Support',
+                'orders': 'Order Issues',
+                'accounts': 'Account Help',
+                'transaction': 'Transaction Issues',
+                'feedback': 'Feedback',
+                'complaint': 'Complaint',
+                'other': 'Other',
+            }
+
+            # Get friendly subject name
+            subject_display = subject_mapping.get(cd['subject'], cd['subject'])
+            
+            # Handle custom subject
+            if cd['subject'] == 'other' and cd.get('custom_subject'):
+                email_subject = f"[AgriCommerce] {cd['custom_subject']}"
+            else:
+                email_subject = f"[AgriCommerce] {subject_display}"
+
             full_message = f"From: {cd['name']} <{cd['email']}>\n\n{cd['message']}"
+            
             send_mail(
-                subject,
+                email_subject,  # Use the constructed subject
                 full_message,
-                cd['email'],                 # from the user’s own email
-                ['groupo1ne@gmail.com'],     # to admin
+                cd['email'],
+                ['groupo1ne@gmail.com'],
                 fail_silently=False,
             )
-            messages.success(request, "Your message has been sent! We’ll get back to you soon.")
-            return redirect('contact')  # or wherever
+            messages.success(request, "Your message has been sent! We'll get back to you soon.")
+            return redirect('contact')
     else:
         form = ContactForm()
     return render(request, 'contact.html', {'form': form})
-
-def create_notification(user, message, notification_type='SYSTEM'):
-    """Simple notification creator"""
-    Notification.objects.create(
-        user=user,
-        message=message,
-        notification_type=notification_type
-    )

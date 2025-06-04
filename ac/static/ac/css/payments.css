@@ -709,3 +709,249 @@ body {
         font-size: 1rem;
     }
 }
+
+
+/* Logistics Section */
+.logistics-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.logistics-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.logistics-card:hover {
+    border-color: #4CAF50;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+}
+
+.logistics-card input[type="radio"] {
+    display: none;
+}
+
+.logistics-card label {
+    cursor: pointer;
+    display: block;
+    width: 100%;
+}
+
+.logistics-card.selected {
+    background: #e8f5e9;
+    border-color: #4CAF50;
+}
+
+.provider-info h5 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.vehicle-type {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.price {
+    color: #27ae60;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.service-areas {
+    color: #34495e;
+    font-size: 0.9rem;
+}
+/* Wallet Top Up Container */
+.payment-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #ffffff;
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.wallet-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+}
+
+.current-balance {
+    font-size: 1.4rem;
+    color: #2c3e50;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+/* Top Up Card Styling */
+.topup-card {
+    background: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid #e0e6ed;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+}
+
+.form-label {
+    display: block;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+}
+
+/* Amount Input Styling */
+.input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.currency {
+    position: absolute;
+    left: 15px;
+    color: #7f8c8d;
+    font-weight: 500;
+    z-index: 1;
+}
+
+#id_amount {
+    width: 100%;
+    padding: 12px 20px 12px 50px;
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+#id_amount:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52,152,219,0.1);
+}
+
+/* Payment Methods */
+.payment-methods {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.method-card {
+    border: 2px solid #e0e6ed;
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.method-card:hover {
+    border-color: #3498db;
+    background: #f8faff;
+}
+
+.method-card input[type="radio"] {
+    display: none;
+}
+
+.method-card label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    color: #4a5568;
+}
+
+.method-card i {
+    font-size: 1.8rem;
+    color: #3498db;
+}
+
+/* File Upload Styling */
+.file-upload-box {
+    border: 2px dashed #e0e6ed;
+    border-radius: 8px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.file-upload-box:hover {
+    border-color: #3498db;
+    background: #f8faff;
+}
+
+.upload-label input[type="file"] {
+    display: none;
+}
+
+.upload-content {
+    text-align: center;
+    padding: 2rem;
+}
+
+.upload-content i {
+    font-size: 2rem;
+    color: #3498db;
+    margin-bottom: 1rem;
+}
+
+.upload-text {
+    display: block;
+    color: #4a5568;
+    font-weight: 500;
+}
+
+.file-name {
+    color: #3498db;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: block;
+}
+
+/* Submit Button */
+.submit-btn {
+    width: 100%;
+    padding: 1rem;
+    background: #3498db;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.submit-btn:hover {
+    background: #2980b9;
+    transform: translateY(-1px);
+    box-shadow: 0 5px 15px rgba(52,152,219,0.2);
+}
+
+/* Transaction Feedback */
+.transaction-feedback {
+    margin-top: 2rem;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

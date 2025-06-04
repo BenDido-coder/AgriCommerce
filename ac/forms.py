@@ -3,8 +3,8 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import ( BuyerProfile, DeliveryJob, FarmerProfile, LogisticsProfile,
- SupplierProfile, Product, SupportAttachment, SupportTicket)
+from .models import ( BuyerProfile, City, DeliveryJob, FarmerProfile, LogisticsProfile,
+ SupplierProfile, Product, SupportAttachment, SupportTicket, WalletTopupRequest)
 from django.db.models import Q
 from .widgets import MultipleFileInput  # Import at the top of the file
 
@@ -30,8 +30,9 @@ class CustomUserCreationForm(UserCreationForm):
 
         )]
     )
-    user_type = forms.ChoiceField(choices=User.USER_TYPE_CHOICES)
-
+    user_type = forms.ChoiceField(
+        choices=[(type, label) for type, label in User.USER_TYPE_CHOICES if type != 'ADMIN']  # Filter out ADMIN
+    )
     class Meta:
         model = User
         fields = ('email', 'phone', 'first_name', 'last_name', 'user_type', 'password1', 'password2')
@@ -133,13 +134,30 @@ class CurrencyConvertForm(forms.Form):
     to_currency = forms.ChoiceField(choices=CURRENCY_CHOICES, widget=forms.Select(attrs={'class': 'form-select'}))
 
 class LogisticsProfileForm(forms.ModelForm):
+    service_areas = forms.ModelMultipleChoiceField(
+        queryset=City.objects.all(),
+        widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
+        required=False
+    )
     class Meta:
         model = LogisticsProfile
-        fields = ['vehicle_type', 'license_plate', 'service_areas', 'profile_photo']
+        fields = ['vehicle_type', 'license_plate', 'nationwide', 'service_areas', 'profile_photo']
         widgets = {
-            'service_areas': forms.TextInput(attrs={'placeholder': 'Comma-separated regions'})
+            'service_areas': forms.SelectMultiple(attrs={'class': 'form-select'}),
+            'nationwide': forms.CheckboxInput(attrs={'class': 'form-check-input'})
         }
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['service_areas'].label = "Service Cities"
+        self.fields['service_areas'].queryset = City.objects.all()
+        self.fields['service_areas'].required = False
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get('nationwide') and cleaned_data.get('service_areas'):
+            raise forms.ValidationError("Cannot select both nationwide and specific cities")
+        return cleaned_data
+    
 class JobCompletionForm(forms.ModelForm):
     class Meta:
         model = DeliveryJob
@@ -154,26 +172,7 @@ class BuyerProfileForm(forms.ModelForm):
                 'rows': 3,
                 'placeholder': 'Enter your primary delivery address'
             })
-        }
-
-class AddFundsForm(forms.Form):
-    amount = forms.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        min_value=100,
-        widget=forms.NumberInput(attrs={
-            'placeholder': 'Minimum 100 ETB'
-        })
-    )
-    payment_method = forms.ChoiceField(
-        choices=[
-            ('TELEBIRR', 'Telebirr'),
-            ('CBE', 'CBE Birr'),
-            ('BANK', 'Bank Transfer')
-        ],
-        widget=forms.RadioSelect
-    )
-    
+        }  
 class DeliveryConfirmationForm(forms.Form):
     delivery_proof = forms.FileField(
         label='Upload Delivery Proof (Optional)',
@@ -222,6 +221,16 @@ class SupportTicketForm(forms.ModelForm):
 
 
 class ContactForm(forms.Form):
+    SUBJECT_CHOICES = [
+        ('general', 'General Inquiry'),
+        ('support', 'Technical Support'),
+        ('orders', 'Order Issues'),
+        ('accounts', 'Account Help'),
+        ('transaction', 'Transaction Issues'),
+        ('feedback', 'Feedback'),
+        ('complaint', 'Complaint'),
+        ('other', 'Other'),
+    ]
     name = forms.CharField(
         label="Your Name",
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Enter your full name'})
@@ -230,12 +239,47 @@ class ContactForm(forms.Form):
         label="Email Address",
         widget=forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'Enter your email'})
     )
-    subject = forms.CharField(
+    subject = forms.ChoiceField(
         label="Subject",
+        required=True,
+        choices=SUBJECT_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'form-select',  # Bootstrap class for dropdowns
+            'placeholder': 'Select a subject category'
+        })
+    )
+    custom_subject = forms.CharField(
+        label="Specify Subject",
         required=False,
-        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Optional'})
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Please specify your subject'
+        })
     )
     message = forms.CharField(
         label="Message",
         widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 5, 'placeholder': 'Write your message here...'})
     )
+class WalletTopupForm(forms.ModelForm):
+    class Meta:
+        model = WalletTopupRequest
+        fields = ['amount', 'payment_method', 'screenshot']
+        widgets = {
+            'payment_method': forms.RadioSelect(),
+            'screenshot': forms.FileInput(attrs={'accept': 'image/*, .pdf'})
+        }
+
+    def clean_amount(self):
+        amount = self.cleaned_data['amount']
+        if amount < 100:  # Minimum top-up amount
+            raise forms.ValidationError("Minimum top-up amount is 100 ETB")
+        return amount
+
+    def clean_screenshot(self):
+        screenshot = self.cleaned_data.get('screenshot')
+        if screenshot:
+            if screenshot.size > 5 * 1024 * 1024:  # 5MB limit
+                raise forms.ValidationError("File size must be less than 5MB")
+            if not screenshot.name.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
+                raise forms.ValidationError("Unsupported file format")
+        return screenshot

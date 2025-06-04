@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container my-5">
+    <h2>Checkout: {{ product.name }}</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <!-- Product Details -->
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5>{{ product.name }}</h5>
+                    <p>Price: {{ product.price|intcomma }} ETB</p>
+                    <p>Seller: {{ product.seller.get_full_name }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <!-- Logistics Selection -->
+            <form method="POST">
+                {% csrf_token %}
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Select Delivery Option</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            {% for provider in logistics_options %}
+                            <label class="list-group-item">
+                                <input type="radio" name="logistics" value="{{ provider.id }}" required>
+                                <div class="ms-2">
+                                    <h6>{{ provider.get_full_name }}</h6>
+                                    <p class="mb-0">
+                                        {{ provider.logisticsprofile.vehicle_type }} • 
+                                        {{ provider.logisticsprofile.price_per_km }} ETB/km
+                                    </p>
+                                    <small>Service areas: {{ provider.logisticsprofile.service_areas }}</small>
+                                </div>
+                            </label>
+                            {% empty %}
+                            <div class="alert alert-warning">
+                                No logistics providers available for this location
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="submit" class="btn btn-success w-100">
+                                Confirm Order (Total: {{ product.price|add:delivery_cost }} ETB)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

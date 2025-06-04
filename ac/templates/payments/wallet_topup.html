@@ -1,46 +1,87 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block extra_css %}
-    <link rel="stylesheet" href="{% static 'ac/css/payments.css' %}">
-    <style>
-        .wallet-topup-container {
-            max-width: 500px;
-            margin: 2rem auto;
-            padding: 2rem;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-    </style>
-{% endblock %}
-{% block content %}
-<div class="wallet-topup-container">
-    <h2>Wallet Top Up</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label>Amount (ETB):</label>
-            <input type="number" name="amount" min="1" max="10000" step="0.01" required class="form-control">
-        </div>
-        <button type="submit" class="btn btn-primary">Add Funds</button>
-    </form>
+{% load humanize %}
 
-    {% if form.errors %}
-        <div class="alert alert-danger">
-            {% for field, errors in form.errors.items %}
-                {{ errors }}
-            {% endfor %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'ac/css/payments.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="payment-container">
+    <div class="wallet-header">
+        <h2><i class="fas fa-wallet"></i> Instant Wallet Top Up</h2>
+        <div class="current-balance">
+            Current Balance: {{ request.user.wallet_balance|intcomma }} ETB
         </div>
-    {% endif %}
-    <!-- Add this to payments/wallet_topup.html -->
-{% if messages %}
-<div class="messages">
-    {% for message in messages %}
-    <div class="alert {% if message.tags %}alert-{{ message.tags }}"{% endif %}>
-        {{ message }}
     </div>
-    {% endfor %}
+
+    <div class="topup-card">
+        <form method="post" enctype="multipart/form-data" class="topup-form">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <label class="form-label">Amount to Add</label>
+                <div class="input-group">
+                    <span class="currency">ETB</span>
+                    {{ form.amount }}
+                </div>
+                {{ form.amount.errors }}
+            </div>
+
+            <div class="form-section">
+                <label class="form-label">Payment Method</label>
+                <div class="payment-methods">
+                    {% for radio in form.payment_method %}
+                    <div class="method-card">
+                        {{ radio.tag }}
+                        <label for="{{ radio.id_for_label }}">
+                            <i class="fas fa-{{ radio.choice_label|lower }}"></i>
+                            {{ radio.choice_label }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+                {{ form.payment_method.errors }}
+            </div>
+
+            <div class="form-section">
+                <label class="form-label">Payment Proof</label>
+                <div class="file-upload-box">
+                    <label class="upload-label">
+                        <input type="file" name="screenshot" required id="id_screenshot">
+                        <div class="upload-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <span class="upload-text">Click to upload transaction proof</span>
+                            <span class="file-name"></span>
+                        </div>
+                    </label>
+                </div>
+                {{ form.screenshot.errors }}
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-check-circle"></i> Confirm Top Up
+            </button>
+        </form>
+    </div>
+
+    {% if messages %}
+    <div class="transaction-feedback">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
-{% endif %}
-</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('id_screenshot').addEventListener('change', function(e) {
+    const fileName = e.target.files[0].name;
+    document.querySelector('.file-name').textContent = fileName;
+});
+</script>
 {% endblock %}

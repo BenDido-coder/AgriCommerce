@@ -1,10 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
-
+{% load dashboard_url %}
 {% block title %}Marketplace - AgriCommerce{% endblock %}
-
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'ac/css/products.css' %}">
+    <link rel="stylesheet" href="{% static 'ac/css/theme.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -66,9 +66,9 @@
                         </h2>
                     </div>
                     <div class="col-md-4 text-end">
-                        <a href="{% url 'farmer_dashboard' %}" class="btn btn-success">
-                            <i class="fas fa-tractor me-2"></i>Seller Dashboard
-                        </a>
+                        {% if user.is_authenticated %}
+                        <li><a href="{% get_dashboard_url user %}">Dashboard</a></li>
+                        {% endif %}
                     </div>
                 </div>
 
@@ -148,4 +148,5 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<script src="{% static 'ac/js/theme.js' %}"></script>
 {% endblock %}

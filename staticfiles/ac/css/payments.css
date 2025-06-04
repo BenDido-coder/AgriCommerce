@@ -709,3 +709,62 @@ body {
         font-size: 1rem;
     }
 }
+
+
+/* Logistics Section */
+.logistics-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #f8f9fa;
+}
+
+.logistics-card {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+}
+
+.logistics-card:hover {
+    border-color: #4CAF50;
+    box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+}
+
+.logistics-card input[type="radio"] {
+    display: none;
+}
+
+.logistics-card label {
+    cursor: pointer;
+    display: block;
+    width: 100%;
+}
+
+.logistics-card.selected {
+    background: #e8f5e9;
+    border-color: #4CAF50;
+}
+
+.provider-info h5 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.vehicle-type {
+    color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+.price {
+    color: #27ae60;
+    font-weight: bold;
+    margin: 0.5rem 0;
+}
+
+.service-areas {
+    color: #34495e;
+    font-size: 0.9rem;
+}

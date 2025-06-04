@@ -6,7 +6,6 @@ from django.core.exceptions import ValidationError
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from datetime import timedelta
-from django.contrib.auth import get_user_model
 
 
 def default_auto_release_date():
@@ -38,6 +37,9 @@ class UserManager(BaseUserManager):
         return self.create_user(email, phone, password, **extra_fields)
 
 class User(AbstractUser):
+    class Meta:
+        db_table = 'ac_user'
+        
     USER_TYPE_CHOICES = [
         ('FARMER', 'Farmer'),
         ('SUPPLIER', 'Supplier/Distributor'),
@@ -60,7 +62,9 @@ class User(AbstractUser):
         max_digits=10,
         decimal_places=2,
         default=0.00,
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(0)],
+        db_index=True,
+        help_text="Updated via F() expressions only!"
     )
     date_joined = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
@@ -80,11 +84,13 @@ class User(AbstractUser):
             self.save(update_fields=['wallet_balance'])
             return True
         return False
-
     def add_wallet(self, amount):
-        self.wallet_balance += Decimal(amount)
-        self.save(update_fields=['wallet_balance'])
-        return True
+        from django.db.models import F
+        updated = User.objects.filter(pk=self.pk).update(
+        wallet_balance=F('wallet_balance') + Decimal(amount)
+        )
+        self.refresh_from_db()  # Force reload from database
+        return updated > 0
 
     def can_list_products(self):
         return self.user_type in ['FARMER', 'SUPPLIER']
@@ -116,7 +122,13 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
     related_url = models.URLField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+    delivery_job = models.ForeignKey(
+        'DeliveryJob',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
+
     @property
     def icon(self):
         icons = {
@@ -168,7 +180,6 @@ class FarmerProfile(models.Model):
 
 
 
-User = get_user_model()
 
 class SupplierProfile(models.Model):
     user = models.OneToOneField(
@@ -331,7 +342,7 @@ class EscrowTransaction(models.Model):
         ('disputed', 'Dispute Raised'),
         ('cancelled', 'Cancelled'),
     ]
-    PLATFORM_FEE_PERCENT = 2.5  # 2.5% platform fee
+    PLATFORM_FEE_PERCENT = Decimal('0.025')
 
     buyer = models.ForeignKey(User, related_name='purchases', on_delete=models.CASCADE)
     seller = models.ForeignKey(User, related_name='sales', on_delete=models.CASCADE)
@@ -349,8 +360,11 @@ class EscrowTransaction(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk:  # Only on creation
-            # Calculate total amount buyer should be charged
-            total_charge = self.amount + ((self.amount * Decimal(self.PLATFORM_FEE_PERCENT)) / 100)
+            # Calculate platform fee (2.5% of the amount)
+            self.platform_fee = (self.amount * self.PLATFORM_FEE_PERCENT).quantize(Decimal('0.00'))
+            
+            # Calculate total charge to buyer (amount + fee)
+            total_charge = self.amount + self.platform_fee
 
             # Verify buyer balance
             if self.buyer.wallet_balance < total_charge:
@@ -359,9 +373,6 @@ class EscrowTransaction(models.Model):
             # Deduct from buyer's wallet
             self.buyer.wallet_balance -= total_charge
             self.buyer.save(update_fields=['wallet_balance'])
-
-            # Set platform fee
-            self.platform_fee = total_charge - self.amount
 
             # Create payment notification
             Notification.objects.create(
@@ -397,7 +408,26 @@ class TransactionUpdate(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
+#logistics provider model
+ETHIOPIAN_CITIES = [
+    ('ADDIS_ABABA', 'Addis Ababa'),
+    ('DIRE_DAWA', 'Dire Dawa'),
+    ('BAHIR_DAR', 'Bahir Dar'),
+    ('MEKELLE', 'Mekelle'),
+    ('AWASA', 'Awasa'),
+    ('JIMMA', 'Jimma'),
+    ('GONDAR', 'Gondar'),
+    ('NAZRET', 'Nazret'),
+    ('DEBRE_MARKOS', 'Debre Markos'),
+    ('ARBA_MINCH', 'Arba Minch'),
+]
 
+class City(models.Model):
+    name = models.CharField(max_length=50, choices=ETHIOPIAN_CITIES, unique=True)
+    
+    def __str__(self):
+        return self.name
+    
 class LogisticsProfile(models.Model):
     VEHICLE_TYPES = [
         ('TRUCK', 'Truck'),
@@ -409,10 +439,49 @@ class LogisticsProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='logisticsprofile')
     vehicle_type = models.CharField(max_length=20, choices=VEHICLE_TYPES, default='TRUCK')
     license_plate = models.CharField(max_length=20, default='N/A')
-    service_areas = models.CharField(max_length=200, help_text="Comma-separated list of service areas",  default='Nationwide')
+    service_areas = models.ManyToManyField('City', help_text="Select cities you service (select Nationwide for all areas)", related_name='logistics_providers')
+    nationwide = models.BooleanField(default=False)
     profile_photo = models.ImageField(upload_to='logistics/profile/', null=True)
     completed_jobs = models.PositiveIntegerField(default=0)
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.0)
+    price_per_km = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2,
+        default=10.00,
+        help_text="Price per kilometer in ETB"
+        )
+
+# Add to Product model (if not exists)
+    pickup_location = models.DecimalField(
+        max_digits=6, 
+        decimal_places=2,
+        default=10.00,
+        help_text="Price per kilometer in ETB"
+)
+    def service_areas_list(self):
+        if self.nationwide:
+            return ["Nationwide"]
+        return [area.strip() for area in self.service_areas.split(',')]
+
+# Add to Order model (create if not exists)
+class Order(models.Model):
+    logistics = models.ForeignKey(
+        User, 
+        null=True, 
+        blank=True,
+        on_delete=models.SET_NULL
+    )
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1) 
+    logistics = models.ForeignKey(
+        User, 
+        null=True, 
+        blank=True, 
+        on_delete=models.SET_NULL,
+        related_name='logistics_orders'  # Add this
+    )
+    delivery_cost = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 class DeliveryJob(models.Model):
     STATUS_CHOICES = [
@@ -423,11 +492,12 @@ class DeliveryJob(models.Model):
         ('CANCELLED', 'Cancelled'),
     ]
     
+    
     provider = models.ForeignKey(User, on_delete=models.CASCADE)
     client = models.ForeignKey(User, related_name='jobs', on_delete=models.CASCADE)
     pickup_location = models.TextField()
     dropoff_location = models.TextField()
-    pickup_time = models.DateTimeField()
+    pickup_time = models.DateTimeField(default=timezone.now, help_text="Estimated pickup time")
     payment_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     delivery_proof = models.FileField(upload_to='delivery_proofs/', null=True)
@@ -445,6 +515,13 @@ class BuyerProfile(models.Model):
     primary_address = models.TextField(blank=True, default='Address not specified')  # Made optional
     saved_suppliers = models.ManyToManyField(User, related_name='followers')
     newsletter_optin = models.BooleanField(default=True)
+    delivery_city = models.ForeignKey(
+    'City',
+    on_delete=models.SET_NULL,
+    null=True,
+    blank=True,
+    verbose_name="Primary Delivery City"
+   )
     def __str__(self):
         return f"Buyer Profile - {self.user.email}"
 
@@ -452,12 +529,6 @@ class WishlistItem(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
-# ac/models.py
-from django.db import models
-from django.contrib.auth import get_user_model
-
-User = get_user_model()
 
 class SupportTicket(models.Model):
     STATUS_CHOICES = [
@@ -475,8 +546,6 @@ class SupportTicket(models.Model):
 class SupportAttachment(models.Model):
     file = models.FileField(upload_to='support_tickets/')
     ticket = models.ForeignKey(SupportTicket, on_delete=models.CASCADE, related_name='attachments')
-
-User = get_user_model()
 
 class WalletTransaction(models.Model):
     TRANSACTION_TYPES = [
@@ -500,3 +569,29 @@ class WalletTransaction(models.Model):
 
     def __str__(self):
         return f"{self.transaction_type} - {self.amount}"
+
+class WalletTopupRequest(models.Model):
+    PAYMENT_METHODS = [
+        ('BANK', 'Bank Transfer'),
+        ('TELEBIRR', 'Telebirr'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS)
+    screenshot = models.FileField(upload_to='topup_screenshots/')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.email} - {self.amount} ETB"
+    
+    def save(self, *args, **kwargs):
+        """Automatically add funds on creation"""
+        if not self.pk:  # Only on first save
+            self.user.add_wallet(self.amount)
+            WalletTransaction.objects.create(
+                user=self.user,
+                amount=self.amount,
+                transaction_type='DEPOSIT'
+            )
+        super().save(*args, **kwargs)

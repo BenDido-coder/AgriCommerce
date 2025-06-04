@@ -3,8 +3,6 @@ from django.utils.html import format_html
 
 register = template.Library()
 
-print("Custom filters loaded!")  # Debug statement
-
 @register.filter(name='add_class')
 def add_class(field, css_class):
     return field.as_widget(attrs={"class": css_class})

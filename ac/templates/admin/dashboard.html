@@ -1,6 +1,9 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load static %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'ac/css/admin.css' %}?v=1.2">
+{% endblock %}
 {% block content %}
 {% include 'admin/includes/user_modal.html' %}
 <div class="container my-5">
@@ -76,27 +79,33 @@
                         <td>{{ user.get_user_type_display }}</td>
                         <td>
                             {% if user.is_active %}
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-success user-status">Active</span>
                             {% else %}
-                                <span class="badge bg-danger">Suspended</span>
+                                <span class="badge bg-danger user-status">Suspended</span>
                             {% endif %}
                         </td>
                         <td>
                             <div class="btn-group">
                                 <button class="btn btn-sm btn-outline-secondary view-user" 
-                                    data-user-id="{{ user.id }}">
+                                    data-user-id="{{ user.id }}" type="button">
                                         <i class="fas fa-eye"></i>
                                 </button>
-                                <button class="btn btn-sm {% if user.is_active %}btn-danger{% else %}btn-success{% endif %} toggle-status" 
-                                    data-user-id="{{ user.id }}">
-                                   {% if user.is_active %}<i class="fas fa-ban"></i>{% else %}<i class="fas fa-check"></i>{% endif %}
-                                </button>
+                                
+                                <form class="toggle-status-form" method="POST" action="{% url 'admin_toggle_user' user.id %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm {% if user.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                    {% if user.is_active %}<i class="fas fa-ban"></i>{% else %}<i class="fas fa-check"></i>{% endif %}
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
+            <form id="userActionsForm" style="display: none;">
+                {% csrf_token %}
+            </form>
         </div>
     </div>
 
@@ -187,6 +196,115 @@
             {% endif %}
         </div>
     </div>
+    <!-- Product Moderation -->
+    <div class="card mb-4">
+        <div class="card-header bg-warning">
+            <h4><i class="fas fa-clipboard-check"></i> Pending Product Approvals ({{ pending_products|length }})</h4>
+        </div>
+        <div class="card-body">
+            {% if pending_products %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Seller</th>
+                            <th>Price</th>
+                            <th>Category</th>
+                            <th>Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in pending_products %}
+                        <tr>
+                            <td>
+                                <a href="#" class="product-preview" 
+                                data-product-id="{{ product.id }}"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#productPreviewModal">
+                                    {{ product.name|truncatechars:30 }}
+                                </a>
+                            </td>
+                            <td>{{ product.seller.email }}</td>
+                            <td>{{ product.price|intcomma }} ETB</td>
+                            <td>{{ product.get_category_display }}</td>
+                            <td>{{ product.created_at|timesince }} ago</td>
+                            <td>
+                                <form method="POST" action="{% url 'moderate_product' product.id %}" 
+                                    class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" name="action" value="approve" 
+                                            class="btn btn-sm btn-success">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="submit" name="action" value="reject" 
+                                            class="btn btn-sm btn-danger">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    <button type="submit" name="action" value="delete" 
+                                            class="btn btn-sm btn-dark"
+                                            onclick="return confirm('Permanently delete this product?')">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-success mb-0">
+                <i class="fas fa-check-circle"></i> All products are approved!
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+<!-- Product Preview Modal -->
+    <div class="modal fade" id="productPreviewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Product Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img id="productPreviewImage" src="" 
+                                class="img-fluid rounded mb-3" 
+                                alt="Product image">
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Product Name</dt>
+                                <dd class="col-sm-8" id="productPreviewName"></dd>
+                            
+                                <dt class="col-sm-4">Seller</dt>
+                                <dd class="col-sm-8" id="productPreviewSeller"></dd>
+                            
+                                <dt class="col-sm-4">Price</dt>
+                                <dd class="col-sm-8" id="productPreviewPrice"></dd>
+                            
+                                <dt class="col-sm-4">Category</dt>
+                                <dd class="col-sm-8" id="productPreviewCategory"></dd>
+                            
+                                <dt class="col-sm-4">Description</dt>
+                                <dd class="col-sm-8" id="productPreviewDescription"></dd>
+                            
+                                <dt class="col-sm-4">Created</dt>
+                                <dd class="col-sm-8" id="productPreviewCreated"></dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
 
 <!-- Add this before the broadcast modal -->
     <div class="card mb-4">
@@ -225,9 +343,9 @@
     </button>
 
 </div>
+<div id="toastContainer" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
 {% endblock %}
-
 {% block extra_js %}
 <script src="{% static 'ac/js/whatsapp.js' %}"></script>
-<script src="{% static 'ac/js/admin.js' %}"></script>
+<script src="{% static 'ac/js/admin.js' %}?v=2.4"></script>
 {% endblock %}

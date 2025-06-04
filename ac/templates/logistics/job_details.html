@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="mb-0">
+                <i class="fas fa-box-open me-2"></i>
+                Delivery Job #{{ job.id }}
+            </h2>
+        </div>
+        
+        <div class="card-body">
+            <div class="row">
+                <!-- Left Column -->
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Pickup Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>Location:</strong><br>
+                                {{ job.pickup_location }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Scheduled Time:</strong><br>
+                                {{ job.pickup_time|date:"M d, Y H:i" }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column -->
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Delivery Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>Destination:</strong><br>
+                                {{ job.dropoff_location }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>Client:</strong><br>
+                                {{ job.client.get_full_name }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Status & Payment Section -->
+            <div class="row mt-4">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header bg-warning text-white">
+                            <h5 class="mb-0">Status</h5>
+                        </div>
+                        <div class="card-body text-center">
+                            <span class="badge 
+                                {% if job.status == 'COMPLETED' %}bg-success
+                                {% elif job.status == 'IN_TRANSIT' %}bg-primary
+                                {% elif job.status == 'PENDING' %}bg-warning
+                                {% else %}bg-secondary{% endif %} fs-5">
+                                {{ job.get_status_display }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Payment & Documentation</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="mb-2">
+                                <strong>Payment Amount:</strong>
+                                {{ job.payment_amount|intcomma }} ETB
+                            </p>
+                            {% if job.delivery_proof %}
+                            <p class="mb-0">
+                                <strong>Delivery Proof:</strong>
+                                <a href="{{ job.delivery_proof.url }}" 
+                                   target="_blank" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-file-pdf"></i> View Document
+                                </a>
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 d-flex justify-content-between">
+                <a href="{% url 'logistics_dashboard' %}" 
+                   class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+                </a>
+                
+                <div class="btn-group">
+                    {% if job.status == 'PENDING' %}
+                    <form method="post" action="{% url 'accept_job' job.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-check me-2"></i>Accept Job
+                        </button>
+                    </form>
+                    <form method="post" action="{% url 'reject_job' job.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-times me-2"></i>Reject Job
+                        </button>
+                    </form>
+                    {% elif job.status == 'ACCEPTED' %}
+                    <button class="btn btn-primary" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#completeModal">
+                        <i class="fas fa-check-circle me-2"></i>Mark Completed
+                    </button>
+                    {% elif job.status == 'IN_TRANSIT' %}
+                    <span class="badge bg-info fs-6">
+                        <i class="fas fa-truck-moving me-2"></i>In Progress
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Completion Modal -->
+<div class="modal fade" id="completeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'complete_job' job.id %}" 
+                  enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Complete Delivery #{{ job.id }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Upload Delivery Proof</label>
+                        <input type="file" class="form-control" name="delivery_proof" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Additional Notes</label>
+                        <textarea class="form-control" name="notes" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-success">Confirm Completion</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

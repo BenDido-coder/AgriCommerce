@@ -39,24 +39,70 @@
                    required>
         </div>
         
-        <!-- Dynamic balance check section -->
+        <!-- City Selection -->
+        <div class="location-section">
+            <h4>Delivery Location</h4>
+            <select name="delivery_city" id="delivery_city" class="form-select" required>
+                <option value="">Select Delivery City</option>
+                {% for city in cities %}
+                <option value="{{ city.id }}" 
+                    {% if request.user.buyerprofile.delivery_city.id == city.id %}selected{% endif %}>
+                    {{ city.get_name_display }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Logistics Providers Section -->
+        <div class="logistics-section" id="logistics-section" style="display:none;">
+            <h4>Delivery Options</h4>
+            <div class="alert alert-info mb-3">
+                <i class="fas fa-info-circle"></i> Select delivery provider (optional)
+            </div>
+            <div class="logistics-options">
+                <!-- None Option -->
+                <div class="logistics-card mb-3">
+                    <input type="radio" name="logistics" id="provider-none" 
+                           value="" class="provider-radio">
+                    <label for="provider-none" class="logistics-label">
+                        <div class="provider-details">
+                            <h5>Self Pickup</h5>
+                            <p class="text-muted"><i class="fas fa-walking"></i> No delivery needed</p>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="alert alert-warning no-providers" style="display:none;">
+                <i class="fas fa-exclamation-triangle"></i> No providers available for selected city
+            </div>
+        </div>
+
+        <!-- Balance Check -->
         <div class="balance-feedback" id="balance-feedback" style="display: none;">
             <div class="alert alert-warning">
                 <i style="color:red"> insufficient balance!</i> <br>
                 <i class="fas fa-exclamation-triangle"></i>
                 <span id="balance-message"></span>
             </div>
+             <br>
+             <hr>
+            <p class="text-muted">
+                <i class="fas fa-info-circle"></i> You can top up your wallet to complete this purchase.
+            </p>
             <a href="{% url 'wallet_topup' %}" class="btn-topup">
                 <i class="fas fa-coins"></i> Top Up Wallet
             </a>
         </div>
-<br>  <div class="button-group">
-        <button type="submit" class="btn-confirm-payment" id="submit-button">
-            <i class="fas fa-check-circle"></i> Confirm Payment
-        </button>
-    </div>
+
+        <br>
+        <div class="button-group">
+            <button type="submit" class="btn-confirm-payment" id="submit-button">
+                <i class="fas fa-check-circle"></i> Confirm Payment
+            </button>
+        </div>
     </form>
-<br>
+
+    <br>
     <div class="button-group">
         <button onclick="openWhatsApp('{{ product.seller.phone }}', 
                  'Regarding order for {{ product.name|escapejs }} (ID: {{ product.id }})')"
@@ -71,40 +117,153 @@
         </a>
     </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const userBalance = parseFloat({{ user_balance|escapejs }});
-    const productPrice = parseFloat({{ product_price|escapejs }});
-    const quantityInput = document.getElementById('quantity');
-    const balanceFeedback = document.getElementById('balance-feedback');
-    const balanceMessage = document.getElementById('balance-message');
-    const submitButton = document.getElementById('submit-button');
+    const userBalance = parseFloat({{ request.user.wallet_balance }});
+    const baseProductPrice = parseFloat({{ product.price }});
+    const MAX_DISTANCE_KM = 15;
 
-    function checkBalance() {
-        const quantity = parseInt(quantityInput.value) || 1;
-        const totalNeeded = productPrice * quantity;
-        const difference = totalNeeded - userBalance;
+    // DOM Elements
+    const elements = {
+        quantity: document.getElementById('quantity'),
+        citySelect: document.getElementById('delivery_city'),
+        logisticsSection: document.getElementById('logistics-section'),
+        logisticsOptions: document.querySelector('.logistics-options'),
+        noProviders: document.querySelector('.no-providers'),
+        balanceFeedback: document.getElementById('balance-feedback'),
+        balanceMessage: document.getElementById('balance-message'),
+        submitButton: document.getElementById('submit-button')
+    };
 
-        if (userBalance < totalNeeded) {
-            const needed = (totalNeeded - userBalance).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+    // Event Listeners
+    elements.citySelect.addEventListener('change', handleCityChange);
+    elements.quantity.addEventListener('input', updateCalculations);
+    
+    // Initial Setup
+    {% if request.user.buyerprofile.delivery_city %}
+    handleCityChange();
+    {% endif %}
+    updateCalculations();
+
+    async function handleCityChange() {
+        const cityId = elements.citySelect.value;
+        if (!cityId) {
+            elements.logisticsSection.style.display = 'none';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/logistics-providers/?city=${cityId}`);
+            const providers = await response.json();
+            
+            // Clear existing options (except None)
+            elements.logisticsOptions.innerHTML = `
+                <div class="logistics-card mb-3">
+                    <input type="radio" name="logistics" id="provider-none" 
+                           value="" class="provider-radio">
+                    <label for="provider-none" class="logistics-label">
+                        <div class="provider-details">
+                            <h5>Self Pickup</h5>
+                            <p class="text-muted"><i class="fas fa-walking"></i> No delivery needed</p>
+                        </div>
+                    </label>
+                </div>`;
+
+            providers.forEach(provider => {
+                const card = createProviderCard(provider);
+                elements.logisticsOptions.appendChild(card);
             });
-            balanceMessage.textContent = `You need ${needed} ETB more for ${quantity} items`;
-            balanceFeedback.style.display = 'block';
-            submitButton.disabled = true;
-        } else {
-            balanceFeedback.style.display = 'none';
-            submitButton.disabled = false;
+
+            elements.noProviders.style.display = providers.length ? 'none' : 'block';
+            elements.logisticsSection.style.display = 'block';
+            addProviderSelectionListeners();
+            updateCalculations();
+
+        } catch (error) {
+            console.error('Error loading providers:', error);
+            elements.logisticsSection.style.display = 'none';
         }
     }
 
-    // Initial check
-    checkBalance();
-    
-    // Update on quantity change
-    quantityInput.addEventListener('input', checkBalance);
+    function createProviderCard(provider) {
+        const card = document.createElement('div');
+        card.className = 'logistics-card mb-3';
+        card.innerHTML = `
+            <input type="radio" name="logistics" id="provider-${provider.id}" 
+                   value="${provider.id}" data-price="${provider.price_per_km}"
+                   class="provider-radio">
+            <label for="provider-${provider.id}" class="logistics-label">
+                <div class="provider-details">
+                    <h5>${provider.name}</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <p><i class="fas fa-truck"></i> ${provider.vehicle_type}</p>
+                            <p class="text-success"><i class="fas fa-money-bill-wave"></i> ${provider.price_per_km.toFixed(2)} ETB/km</p>
+                        </div>
+                        <div class="col-6">
+                            <p class="text-muted"><i class="fas fa-map-marked-alt"></i> ${provider.service_areas}</p>
+                        </div>
+                    </div>
+                </div>
+            </label>
+        `;
+        return card;
+    }
+
+    function addProviderSelectionListeners() {
+        document.querySelectorAll('.provider-radio').forEach(radio => {
+            radio.addEventListener('change', function() {
+                document.querySelectorAll('.logistics-card').forEach(card => {
+                    card.classList.remove('selected');
+                });
+                if (this.checked) {
+                    this.closest('.logistics-card').classList.add('selected');
+                }
+                updateCalculations();
+            });
+        });
+    }
+
+    function updateCalculations() {
+        const quantity = parseInt(elements.quantity.value) || 1;
+        const selectedProvider = document.querySelector('.provider-radio:checked');
+        const deliveryCost = selectedProvider && selectedProvider.value ? 
+            parseFloat(selectedProvider.dataset.price) * MAX_DISTANCE_KM : 0;
+        
+        const totalPrice = (baseProductPrice * quantity) + deliveryCost;
+        const balanceSufficient = userBalance >= totalPrice;
+
+        // Update balance feedback
+        elements.balanceFeedback.style.display = balanceSufficient ? 'none' : 'flex';
+        elements.submitButton.disabled = !balanceSufficient;
+        
+        if (!balanceSufficient) {
+            const needed = (totalPrice - userBalance).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+            elements.balanceMessage.textContent = `You need ${needed} ETB more to complete this purchase`;
+        }
+    }
 });
 </script>
+
+<style>
+/* Logistics card styling */
+.logistics-card {
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+
+.logistics-card.selected {
+    border-color: #28a745;
+    background-color: #f8fff9;
+    transform: scale(1.02);
+}
+</style>
+
 <script src="{% static 'ac/js/whatsapp.js' %}"></script>
 {% endblock %}

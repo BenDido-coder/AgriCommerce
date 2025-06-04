@@ -26,14 +26,3 @@
         </div>
     </div>
 </div>
-
-<script>
-function populateUserModal(data) {
-    document.getElementById('user-fullname').textContent = data.full_name;
-    document.getElementById('user-email').textContent = data.email;
-    document.getElementById('user-phone').textContent = data.phone;
-    document.getElementById('user-registered').textContent = new Date(data.date_joined).toLocaleString();
-    document.getElementById('user-lastlogin').textContent = data.last_login ? 
-        new Date(data.last_login).toLocaleString() : 'Never';
-}
-</script>
