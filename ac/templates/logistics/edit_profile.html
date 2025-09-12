@@ -33,29 +33,69 @@
                 <div class="card">
                     <div class="card-body">
                         <h4 class="card-title mb-4">Service Information</h4>
-                        
+    
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Vehicle Type</label>
                                 {{ form.vehicle_type }}
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">License Plate</label>
-                                {{ form.license_plate }}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">License File</label>
+                            {{ form.license_file }}
+                            {% if form.instance.license_file %}
+                            <div class="mt-2">
+                                <a href="{{ form.instance.license_file.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View current file
+                                </a>
                             </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">National ID</label>
+                            {{ form.national_id }}
+                            {% if form.instance.national_id %}
+                            <div class="mt-2">
+                                <a href="{{ form.instance.national_id.url }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View current file
+                                </a>
+                            </div>
+                            {% endif %}
                         </div>
 
                         <div class="mb-3 form-check">
-                           {{ form.nationwide }}
+                            {{ form.nationwide }}
                             <label class="form-check-label" for="{{ form.nationwide.id_for_label }}">
-                                    Nationwide Coverage
+                                Nationwide Coverage
                             </label>
                         </div>
 
                         <div class="mb-3" id="city-selection">
                             <label class="form-label">Service Cities</label>
-                                {{ form.service_areas }}
-                                <small class="text-muted">Hold Ctrl/Cmd to select multiple cities</small>
+                            <div class="row">
+                                {% for city in form.service_areas.field.queryset %}
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input type="checkbox" 
+                                                   name="service_areas" 
+                                                   value="{{ city.id }}"
+                                                   id="city-{{ city.id }}"
+                                                   class="form-check-input"
+                                                   {% if city in form.instance.service_areas.all %}checked{% endif %}>
+                                            <label class="form-check-label" for="city-{{ city.id }}">
+                                                {{ city.name }}
+                                            </label>
+                                        </div>
+                                    </div>
+                                {% empty %}
+                                    <div class="col-12">
+                                        <p class="text-danger">No cities available. Please add cities in admin.</p>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <small class="text-muted">Select all cities you service</small>
                         </div>
                         
                         <div class="d-grid gap-2 mt-4">
@@ -69,4 +109,26 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Show/hide city selection based on nationwide checkbox
+    const nationwideCheckbox = document.getElementById('{{ form.nationwide.id_for_label }}');
+    const citySelection = document.getElementById('city-selection');
+    
+    function toggleCitySelection() {
+        citySelection.style.display = nationwideCheckbox.checked ? 'none' : 'block';
+    }
+    
+    nationwideCheckbox.addEventListener('change', toggleCitySelection);
+    toggleCitySelection(); // Initial state
+});
+</script>
+
+<style>
+/* Add some spacing between checkboxes */
+.form-check {
+    margin-bottom: 0.5rem;
+}
+</style>
 {% endblock %}

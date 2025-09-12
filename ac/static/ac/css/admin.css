@@ -1,3 +1,6 @@
+  :root{
+  --text-dark: #2c3e50;
+  }
 .admin-stat-card {
     transition: transform 0.2s;
     border-left: 4px solid var(--bs-primary);
@@ -13,4 +16,7 @@
 }
 .modal {
     z-index: 1060; /* Higher than DataTables overlay (1050) */
+}
+ h3, h4, h5 {
+    color: var(--text-dark);
 }

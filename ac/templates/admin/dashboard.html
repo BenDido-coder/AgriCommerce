@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 {% load humanize %}
 {% load static %}
+{% load admin_urls %}  <!-- Add this at top -->
 {% block extra_css %}
     <link rel="stylesheet" href="{% static 'ac/css/admin.css' %}?v=1.2">
 {% endblock %}
@@ -169,7 +170,7 @@
                         {% for ticket in open_tickets %}
                         <tr>
                             <td>
-                                <a href="{% url 'admin:ac_supportticket_change' ticket.id %}">
+                                <a href="{% url 'admin:ac_supportticket_change' ticket.id|admin_urlquote %}">
                                     {{ ticket.subject|truncatechars:40 }}
                                 </a>
                             </td>

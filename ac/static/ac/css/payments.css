@@ -1,9 +1,12 @@
-/* Variables */
+/* Variables for Light Mode */
 :root {
     --primary-green: #2ecc71;
+    --primary-green-rgb: 46, 204, 113;
     --dark-green: #27ae60;
     --light-grey: #f9f9f9;
     --text-dark: #2c3e50;
+    --text-secondary: #6b7280;
+    --text-light: #ffffff; /* <-- ADD THIS */
     --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     --warning: #f1c40f;
     --error: #dc3545;
@@ -15,6 +18,82 @@
     --pending: #ddd;
     --whatsapp: #25d366;
     --topup: #ff9800;
+    --background: #f9f9f9;
+    --surface: #ffffff;
+    --on-background: #2c3e50;
+    --on-surface: #2c3e50;
+    --border-color: #dee2e6;
+    --calc-bg: #f8f9fa;
+    --selected-bg: #f8fff9;
+    --alert-info-bg: #d1ecf1;
+    --alert-warning-bg: #fff3cd;
+    --star-color: #FFD700;
+}
+
+/* Dark Mode Variables Override */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary-green: #2ecc71; /* Keep vibrant for accents */
+        --primary-green-rgb: 46, 204, 113;
+        --dark-green: #27ae60;
+        --light-grey: #121212;
+        --text-dark: #e0e0e0;
+        --text-light: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        --warning: #f1c40f;
+        --error: #dc3545;
+        --white: #1e1e1e;
+        --background: #121212;
+        --surface: #1e1e1e;
+        --on-background: #e0e0e0;
+        --on-surface: #e0e0e0;
+        --border-color: #333333;
+        --calc-bg: #2d2d2d;
+        --selected-bg: #2a3a2a; /* Darker green tint for selected */
+        --alert-info-bg: #0c5460; /* Darker info background */
+        --alert-warning-bg: #856404; /* Darker warning background */
+        --star-color: #FFD700; /* Keep gold, but could adjust to #FFE700 for brighter */
+    }
+
+    /* Specific adjustments for dark mode */
+    .product-image img {
+        mix-blend-mode: normal; /* Prevent multiplication with dark background */
+        filter: brightness(1.1) contrast(1.1); /* Slightly enhance visibility */
+    }
+
+    .text-muted {
+        color: #a0a0a0 !important; /* Ensure muted text is visible */
+    }
+
+    .text-success {
+        color: #28a745 !important; /* Keep visible green */
+    }
+
+    hr {
+        border-color: #444 !important; /* Visible separators */
+    }
+
+    .alert {
+        color: #e0e0e0 !important; /* Text in alerts */
+    }
+
+    .form-control {
+        background-color: #2d2d2d !important;
+        color: #e0e0e0 !important;
+        border-color: #444 !important;
+    }
+
+    .form-control:focus {
+        border-color: #2ecc71 !important;
+        box-shadow: 0 0 8px rgba(46, 204, 113, 0.2) !important;
+    }
+
+    .form-select {
+        background-color: #2d2d2d !important;
+        color: #e0e0e0 !important;
+        border-color: #444 !important;
+    }
 }
 
 /* General Reset */
@@ -26,10 +105,12 @@
 
 body {
     font-family: 'Roboto', sans-serif;
-    color: var(--text-dark);
-    background-color: var(--light-grey);
+    color: var(--on-background);
+    background-color: var(--background);
 }
-
+.card-body {
+    overflow: visible !important;
+}
 /* Animation Keyframes */
 @keyframes pulse {
     0% { transform: scale(1); }
@@ -46,7 +127,7 @@ body {
 .transaction-card {
     max-width: 600px;
     margin: 2rem auto;
-    background: var(--white);
+    background: var(--surface);
     border-radius: var(--border-radius);
     padding: 2rem;
     box-shadow: var(--shadow);
@@ -58,6 +139,7 @@ body {
     font-size: 1.8rem;
     font-weight: 600;
     margin-bottom: 1rem;
+    color: var(--on-surface);
 }
 
 .status-badge {
@@ -75,7 +157,7 @@ body {
 .transaction-info p {
     font-size: 1rem;
     margin: 0.5rem 0;
-    color: #6b7280;
+    color: var(--text-secondary);
 }
 
 .transaction-info p::before {
@@ -138,19 +220,27 @@ body {
 .payment-details .price {
     font-size: 2rem;
     font-weight: 700;
-    color: var(--text-dark);
+    color: var(--on-surface);
     margin: 0;
 }
 
 .payment-details .seller {
     font-size: 1.1rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin: -0.5rem 0 1rem;
 }
 
 .wallet-status {
     order: 1;
     margin-top: 0;
+}
+
+.wallet-status.sufficient {
+    color: var(--completed);
+}
+
+.wallet-status.insufficient {
+    color: var(--error);
 }
 
 .form-group {
@@ -187,7 +277,7 @@ body {
 .payment-success {
     max-width: 800px;
     margin: 2rem auto;
-    background: var(--white);
+    background: var(--surface);
     border-radius: var(--border-radius);
     padding: 2rem;
     box-shadow: var(--shadow);
@@ -204,6 +294,7 @@ body {
 .success-header h1 {
     font-size: 2rem;
     font-weight: 600;
+    color: var(--on-surface);
 }
 
 .transaction-details {
@@ -223,17 +314,18 @@ body {
 .detail-card h3, .next-steps h3 {
     font-size: 1.5rem;
     margin-bottom: 1rem;
+    color: var(--on-surface);
 }
 
 .detail-card p {
     margin: 0.5rem 0;
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--text-secondary);
 }
 
 .detail-card p span {
     font-weight: 500;
-    color: var(--text-dark);
+    color: var(--on-surface);
 }
 
 .next-steps ol {
@@ -248,7 +340,7 @@ body {
     padding-left: 2rem;
     margin-bottom: 1rem;
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--text-secondary);
 }
 
 .next-steps ol li::before {
@@ -290,8 +382,8 @@ body {
 
 .btn-continue-shopping {
     background: var(--light-grey);
-    color: var(--text-dark);
-    border: 1px solid #ccc;
+    color: var(--on-surface);
+    border: 1px solid var(--border-color);
 }
 
 .btn-continue-shopping:hover {
@@ -304,7 +396,7 @@ body {
 .payment-flow {
     max-width: 1200px;
     margin: 2rem auto;
-    background: var(--white);
+    background: var(--surface);
     border-radius: var(--border-radius);
     padding: 2rem;
     box-shadow: var(--shadow);
@@ -316,6 +408,7 @@ body {
     font-weight: 600;
     text-align: center;
     margin-bottom: 2rem;
+    color: var(--on-surface);
 }
 
 .seller-verification {
@@ -337,7 +430,7 @@ body {
 
 .seller-verification p {
     font-size: 1rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     margin: 0.5rem 0;
 }
 
@@ -370,7 +463,7 @@ body {
     width: 40px;
     height: 40px;
     background: var(--pending);
-    color: var(--text-dark);
+    color: var(--on-surface);
     border-radius: 50%;
     line-height: 40px;
     text-align: center;
@@ -397,11 +490,12 @@ body {
 .step-content h3 {
     font-size: 1.2rem;
     margin-bottom: 0.5rem;
+    color: var(--on-surface);
 }
 
 .step-content p {
     font-size: 0.95rem;
-    color: #6b7280;
+    color: var(--text-secondary);
 }
 
 .navigation-links {
@@ -432,7 +526,7 @@ body {
 .wallet-topup-container {
     max-width: 500px;
     margin: 2rem auto;
-    background: var(--white);
+    background: var(--surface);
     border-radius: var(--border-radius);
     padding: 2rem;
     box-shadow: var(--shadow);
@@ -444,6 +538,7 @@ body {
     font-weight: 600;
     text-align: center;
     margin-bottom: 1.5rem;
+    color: var(--on-surface);
 }
 
 
@@ -456,6 +551,7 @@ body {
     font-weight: 500;
     margin-bottom: 0.5rem;
     display: block;
+    color: var(--on-surface);
 }
 
 .form-group .form-control {
@@ -645,7 +741,7 @@ body {
 
 /* Top Up Wallet Link (Blue Version) */
 .btn-topup {
-    color: #2121f3 !important; /* New blue color */
+    color: #2196F3 !important; /* New blue color */
     font-weight: 600;
     text-decoration: none;
     display: inline-flex;
@@ -666,7 +762,7 @@ body {
 
 /* Enhanced Back to Products Link */
 .btn-back {
-    color: var(--text-dark) !important;
+    color: var(--on-surface) !important;
     font-weight: 600;
     font-size: 1.1rem;
     text-decoration: none;
@@ -715,13 +811,13 @@ body {
 .logistics-section {
     margin-top: 2rem;
     padding: 1.5rem;
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
-    background: #f8f9fa;
+    background: var(--light-grey);
 }
 
 .logistics-card {
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--border-color);
     border-radius: 8px;
     padding: 1rem;
     margin-bottom: 1rem;
@@ -744,17 +840,17 @@ body {
 }
 
 .logistics-card.selected {
-    background: #e8f5e9;
+    background: var(--selected-bg);
     border-color: #4CAF50;
 }
 
 .provider-info h5 {
-    color: #2c3e50;
+    color: var(--text-light);
     margin-bottom: 0.5rem;
 }
 
 .vehicle-type {
-    color: #7f8c8d;
+    color: var(--text-light);
     font-size: 0.9rem;
 }
 
@@ -768,12 +864,13 @@ body {
     color: #34495e;
     font-size: 0.9rem;
 }
+
 /* Wallet Top Up Container */
 .payment-container {
     max-width: 600px;
     margin: 2rem auto;
     padding: 2rem;
-    background: #ffffff;
+    background: var(--surface);
     border-radius: 15px;
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
@@ -782,23 +879,23 @@ body {
     text-align: center;
     margin-bottom: 2rem;
     padding: 1.5rem;
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    background: linear-gradient(135deg, var(--light-grey) 0%, #e9ecef 100%);
     border-radius: 12px;
 }
 
 .current-balance {
     font-size: 1.4rem;
-    color: #2c3e50;
+    color: var(--on-surface);
     font-weight: 600;
     margin-top: 1rem;
 }
 
 /* Top Up Card Styling */
 .topup-card {
-    background: #fff;
+    background: var(--surface);
     padding: 2rem;
     border-radius: 12px;
-    border: 1px solid #e0e6ed;
+    border: 1px solid var(--border-color);
 }
 
 .form-section {
@@ -808,7 +905,7 @@ body {
 .form-label {
     display: block;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--on-surface);
     margin-bottom: 0.8rem;
     font-size: 1.1rem;
 }
@@ -823,7 +920,7 @@ body {
 .currency {
     position: absolute;
     left: 15px;
-    color: #7f8c8d;
+    color: var(--text-secondary);
     font-weight: 500;
     z-index: 1;
 }
@@ -831,7 +928,7 @@ body {
 #id_amount {
     width: 100%;
     padding: 12px 20px 12px 50px;
-    border: 2px solid #e0e6ed;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     font-size: 1.1rem;
     transition: all 0.3s ease;
@@ -850,7 +947,7 @@ body {
 }
 
 .method-card {
-    border: 2px solid #e0e6ed;
+    border: 2px solid var(--border-color);
     border-radius: 8px;
     padding: 1rem;
     cursor: pointer;
@@ -859,7 +956,7 @@ body {
 
 .method-card:hover {
     border-color: #3498db;
-    background: #f8faff;
+    background: var(--light-grey);
 }
 
 .method-card input[type="radio"] {
@@ -872,7 +969,7 @@ body {
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
-    color: #4a5568;
+    color: var(--on-surface);
 }
 
 .method-card i {
@@ -882,7 +979,7 @@ body {
 
 /* File Upload Styling */
 .file-upload-box {
-    border: 2px dashed #e0e6ed;
+    border: 2px dashed var(--border-color);
     border-radius: 8px;
     padding: 1rem;
     transition: all 0.3s ease;
@@ -890,7 +987,7 @@ body {
 
 .file-upload-box:hover {
     border-color: #3498db;
-    background: #f8faff;
+    background: var(--light-grey);
 }
 
 .upload-label input[type="file"] {
@@ -910,7 +1007,7 @@ body {
 
 .upload-text {
     display: block;
-    color: #4a5568;
+    color: var(--on-surface);
     font-weight: 500;
 }
 
@@ -954,4 +1051,137 @@ body {
 @keyframes slideIn {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* Moved from template - Adjusted for variables and dark mode */
+.calculation-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: var(--calc-bg);
+    border-radius: 8px;
+}
+
+.price-breakdown {
+    margin-top: 15px;
+}
+
+.price-breakdown p {
+    color: var(--on-surface);
+}
+
+.total-price {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-top: 10px;
+    color: var(--on-surface);
+}
+ h3, h4, .price, .total-price {
+    color: var(--text-light);
+}
+.seller, .seller-location, .text-muted {
+    color: var(--text-light);
+}
+
+/* Logistics card styling */
+.logistics-card {
+    border: 2px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.2s ease;
+}
+/* Logistics Cards */
+.logistics-section {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.logistics-card {
+    border: 1px solid var(--border-light);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+    background: var(--surface-light);
+}
+
+.logistics-card:hover {
+    border-color: var(--primary-green);
+}
+
+.logistics-card.selected {
+    border-color: var(--primary-green);
+    background: rgba(46, 204, 113, 0.1);
+}
+
+.provider-info h5 {
+    color: var(--text-light);
+}
+
+.logistics-card.selected {
+    border-color: var(--primary-green);
+    background-color: var(--selected-bg);
+    transform: scale(1.02);
+}
+
+.provider-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.provider-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.provider-rating i {
+    color: var(--star-color); /* Gold color for stars */
+}
+
+.provider-rating span {
+    font-weight: bold;
+    color: var(--on-surface);
+}
+
+.seller-location {
+    margin-top: 5px;
+    font-size: 0.9em;
+    color: var(--text-secondary);
+}
+
+.alert-info {
+    background-color: var(--alert-info-bg);
+}
+
+.alert-warning {
+    background-color: var(--alert-warning-bg);
+}
+
+.balance-feedback .alert-warning {
+    background-color: var(--alert-warning-bg);
+    color: var(--on-surface);
+}
+/* Add to ac/css/payments.css or inside <style> in your template */
+#balance-feedback.show {
+    animation: fadeIn 0.5s;
+}
+#balance-feedback.shake {
+    animation: shake 0.4s;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px);}
+    to { opacity: 1; transform: translateY(0);}
+}
+@keyframes shake {
+    0% { transform: translateX(0);}
+    20% { transform: translateX(-8px);}
+    40% { transform: translateX(8px);}
+    60% { transform: translateX(-8px);}
+    80% { transform: translateX(8px);}
+    100% { transform: translateX(0);}
 }

@@ -1,0 +1,21 @@
+<!-- wishlist.html -->
+{% extends "base.html" %}
+{% block content %}
+<h2>Your Wishlist</h2>
+<div class="row">
+  {% for item in wishlist_items %}
+    <div class="col-md-4 mb-3">
+      <div class="card">
+        <img src="{{ item.product.image.url }}" class="card-img-top" alt="{{ item.product.name }}">
+        <div class="card-body">
+          <h5 class="card-title">{{ item.product.name }}</h5>
+          <p class="card-text">Price: {{ item.product.price }}</p>
+          <a href="{% url 'product_detail' item.product.id %}" class="btn btn-primary">View Product</a>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <p>No items in your wishlist.</p>
+  {% endfor %}
+</div>
+{% endblock %}

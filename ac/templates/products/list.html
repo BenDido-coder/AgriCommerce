@@ -65,12 +65,17 @@
                             <small class="text-muted fs-5">({{ products.count }} items)</small>
                         </h2>
                     </div>
-                    <div class="col-md-4 text-end">
+                    <div class="col-md-4">
                         {% if user.is_authenticated %}
-                        <li><a href="{% get_dashboard_url user %}">Dashboard</a></li>
-                        {% endif %}
+                        <div class="dashboard-link-container">
+                            <a href="{% get_dashboard_url user %}" class="dashboard-link">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                             </a>
+                        </div>
+                    {% endif %}
                     </div>
                 </div>
+                
 
                 <!-- Product Grid -->
                 <div id="productGrid" class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">

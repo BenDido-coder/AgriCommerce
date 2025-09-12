@@ -12,7 +12,7 @@
                     <h5>Product Details</h5>
                     <p><strong>Name:</strong> {{ order.product.name }}</p>
                     <p><strong>Price:</strong> {{ order.amount|intcomma }} ETB</p>
-                    <p><strong>Quantity:</strong> {{ order.quantity }}</p>
+                    <p><strong>Quantity:</strong> {{ order.quantity }} {{ order.product.get_unit_display }}</p>
                 </div>
                 <div class="col-md-6">
                     <h5>Transaction Info</h5>
@@ -27,6 +27,48 @@
                     <p><strong>Date:</strong> {{ order.created_at|date:"M d, Y" }}</p>
                 </div>
             </div>
+
+            <!-- Logistics Information Section - NEW CONTENT -->
+            {% if order.deliveryjob %}
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <h5>Delivery Information</h5>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Logistics Provider:</strong> 
+                                        {{ order.deliveryjob.provider.get_full_name }}
+                                    </p>
+                                    <p><strong>Vehicle Type:</strong> 
+                                        {{ order.deliveryjob.provider.logisticsprofile.get_vehicle_type_display }}
+                                    </p>
+                                    <p><strong>Contact:</strong> 
+                                        {{ order.deliveryjob.provider.phone }}
+                                    </p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Pickup Location:</strong> 
+                                        {{ order.deliveryjob.pickup_location }}
+                                    </p>
+                                    <p><strong>Destination:</strong> 
+                                        {{ order.deliveryjob.dropoff_location }}
+                                    </p>
+                                    <p><strong>Status:</strong> 
+                                        <span class="badge 
+                                            {% if order.deliveryjob.status == 'COMPLETED' %}bg-success
+                                            {% elif order.deliveryjob.status == 'IN_TRANSIT' %}bg-primary
+                                            {% else %}bg-warning{% endif %}">
+                                            {{ order.deliveryjob.get_status_display }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
 
             {% if can_confirm %}
             <div class="alert alert-info">

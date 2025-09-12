@@ -37,9 +37,6 @@
             </div>
         </div>
         <div>
-            <a href="{% url 'my_account' %}" class="btn btn-light me-2">
-                <i class="fas fa-edit"></i>
-            </a>
             <a href="{% url 'farmer_add_product' %}" class="btn btn-success">
                 <i class="fas fa-seedling me-2"></i>Add Product
             </a>
@@ -85,6 +82,7 @@
                 </a>
             </div>
         </div>
+
         <div class="card-body">
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 {% for product in products %}

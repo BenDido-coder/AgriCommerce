@@ -7,7 +7,9 @@
 .dashboard-header {
     margin-bottom: 2rem;
 }
-
+.card-body {
+    overflow: visible !important;
+}
 .profile-card {
     background: white;
     padding: 2rem;

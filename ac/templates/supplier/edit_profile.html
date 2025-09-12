@@ -13,28 +13,31 @@
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="row">
+            <!-- Profile Photo -->
             <div class="col-md-4">
                 <div class="card mb-3">
                     <div class="card-body text-center">
-                        {% if profile_form.instance.profile_photo %}
-                            <img src="{{ profile_form.instance.profile_photo.url }}" 
-                                 class="img-fluid rounded-circle mb-3" 
-                                 alt="Profile Photo" style="width: 150px; height: 150px;">
+                        {% if profile.profile_photo %}
+                            <img src="{{ profile.profile_photo.url }}"
+                                 class="img-fluid rounded-circle mb-3"
+                                 alt="Profile Photo"
+                                 style="width: 150px; height: 150px;">
                         {% else %}
-                            <div class="bg-light rounded-circle mb-3" 
+                            <div class="bg-light rounded-circle mb-3"
                                  style="width: 150px; height: 150px;"></div>
                         {% endif %}
                         {{ profile_form.profile_photo }}
                     </div>
                 </div>
             </div>
-            
+
+            <!-- Main Form -->
             <div class="col-md-8">
                 <div class="card">
                     <div class="card-body">
-                        <!-- Added Personal Information Section -->
+
+                        <!-- Personal Information -->
                         <h4 class="card-title mb-4">Personal Information</h4>
-                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">First Name</label>
@@ -46,20 +49,19 @@
                             </div>
                         </div>
 
+                        <!-- Company Info -->
                         <h4 class="card-title mt-5 mb-4">Company Information</h4>
-                        
                         <div class="mb-3">
                             <label class="form-label">Company Name</label>
                             {{ profile_form.company_name }}
                         </div>
-                        
                         <div class="mb-3">
                             <label class="form-label">Location</label>
                             {{ profile_form.location }}
                         </div>
-                        
+
+                        <!-- Contact Info -->
                         <h4 class="card-title mt-5 mb-4">Contact Information</h4>
-                        
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Email</label>
@@ -70,10 +72,36 @@
                                 {{ user_form.phone }}
                             </div>
                         </div>
+                        <!-- Business Location Section -->
+                        <h4 class="card-title mt-5 mb-4">Business Location</h4>
+                        <div class="mb-3">
+                            <label class="form-label">City</label>
+                            {{ profile_form.location }}
+                        </div>
                         
+                        <div class="mb-3">
+                            <label class="form-label">Pin your exact location</label>
+                            <div id="map" style="height: 400px; width: 100%;" class="mb-3 border rounded"></div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Latitude</label>
+                                <input type="text" id="id_location_lat" name="location_lat" 
+                                       value="{{ profile_form.location_lat.value|default_if_none:'' }}"
+                                       class="form-control" readonly>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Longitude</label>
+                                <input type="text" id="id_location_lng" name="location_lng" 
+                                       value="{{ profile_form.location_lng.value|default_if_none:'' }}"
+                                       class="form-control" readonly>
+                            </div>
+                        </div>
+                        <!-- Submit -->
                         <div class="d-grid gap-2 mt-4">
                             <button type="submit" class="btn btn-success">
-                                <i class="fas fa-save me-2"></i>Save Changes
+                                <i class="fas fa-save me-2"></i> Save Changes
                             </button>
                         </div>
                     </div>
@@ -82,4 +110,57 @@
         </div>
     </form>
 </div>
+
+<!-- Leaflet CSS & JS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial coordinates - use existing or default to Addis Ababa
+    const initialLat = {% if profile_form.location_lat.value %}{{ profile_form.location_lat.value }}{% else %}9.005401{% endif %};
+    const initialLng = {% if profile_form.location_lng.value %}{{ profile_form.location_lng.value }}{% else %}38.763611{% endif %};
+    
+    // Initialize map
+    const map = L.map('map').setView([initialLat, initialLng], 13);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    
+    // Add draggable marker
+    const marker = L.marker([initialLat, initialLng], {
+        draggable: true
+    }).addTo(map);
+    
+    // Function to update the form fields
+    function updatePositionFields(lat, lng) {
+        document.getElementById('id_location_lat').value = lat.toFixed(6);
+        document.getElementById('id_location_lng').value = lng.toFixed(6);
+        console.log('Updated coordinates:', lat, lng); // For debugging
+    }
+    
+    // Update fields when marker is dragged
+    marker.on('dragend', function(e) {
+        const position = marker.getLatLng();
+        updatePositionFields(position.lat, position.lng);
+    });
+    
+    // Update fields when map is clicked
+    map.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        updatePositionFields(e.latlng.lat, e.latlng.lng);
+    });
+    
+    // Initialize fields
+    updatePositionFields(initialLat, initialLng);
+    
+    // Optional: Add click event to city dropdown to recenter map
+    document.getElementById('id_location').addEventListener('change', function() {
+        // You could add logic here to center map based on selected city
+        console.log('City changed to:', this.value);
+    });
+});
+</script>
 {% endblock %}

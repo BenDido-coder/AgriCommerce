@@ -5,50 +5,45 @@
     <link rel="stylesheet" href="{% static 'ac/css/products.css' %}">
     <link rel="stylesheet" href="{% static 'ac/css/theme.css' %}">
 {% endblock %}
+
 {% block content %}
 <div class="product-detail-container">
-    <!-- Product Image with Fallback -->
+    <!-- Product Image -->
     <div class="product-image">
         {% if product.image %}
-        <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
         {% else %}
-        <div class="no-image">No Image Available</div>
+        <div class="no-image d-flex align-items-center justify-content-center">
+            <i class="fas fa-seedling fa-4x text-muted"></i>
+        </div>
         {% endif %}
     </div>
 
     <!-- Product Details -->
     <div class="product-info">
         <h1>{{ product.name }}</h1>
-           <h4>Price:</h4>
-        <div class="price-badge">
-            {{ product.price }} ETB
-        </div>
         
-        <!-- Seller Verification -->
-        <div class="seller-info">
-            <h3>Seller Details</h3>
-            <div class="verification-badge {% if product.seller.farmer_profile %}verified{% endif %}">
-                {% if product.seller.farmer_profile %}
-                <i class="fas fa-certificate"></i> Verified Farmer
-                {% else %}
-                <i class="fas fa-exclamation-triangle"></i> Unverified Seller
-                {% endif %}
+        <div class="product-header">
+            <div class="price-badge">
+                {{ product.price }} ETB
             </div>
-            <p>Farm: {{ product.seller.farmer_profile.farm_name|default:"Independent Seller" }}</p>
+            
+            <div class="verification-badge-container">
+                <div class="verification-badge {% if product.seller.farmer_profile %}verified{% endif %}">
+                    {% if product.seller.farmer_profile %}
+                    <i class="fas fa-certificate"></i> Verified Farmer
+                    {% else %}
+                    <i class="fas fa-exclamation-triangle"></i> Unverified Seller
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <!-- Action Buttons -->
-        <div class="action-buttons">
-            <!-- Buy Now Button -->
-            <a href="{% url 'initiate_payment' product.id %}" class="btn btn-primary btn-lg">
-                <i class="fas fa-shopping-cart"></i> Buy Now
-            </a>
-              <!-- Contact Seller Button -->
-            <button class="btn btn-outline-primary btn-lg" 
-                    onclick="openWhatsApp('{{ product.seller.phone }}', 
-                             'Regarding {{ product.name|escapejs }} (ID: {{ product.id }})')">
-                <i class="fab fa-whatsapp"></i> Contact Seller
-            </button>
+        <!-- Seller Information -->
+        <div class="seller-info">
+            <h3>Seller Details</h3>
+            <p><strong>Farm:</strong> {{ product.seller.farmer_profile.farm_name|default:"Independent Seller" }}</p>
+            <p><strong>Seller:</strong> {{ product.seller.get_full_name|default:product.seller.username }}</p>
         </div>
 
         <!-- Product Description -->
@@ -57,23 +52,53 @@
             <p>{{ product.description|linebreaks }}</p>
         </div>
 
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{% url 'initiate_payment' product.id %}" class="btn btn-primary">
+                <i class="fas fa-shopping-cart"></i> Buy Now
+            </a>
+            <button class="btn btn-outline-primary" 
+                    onclick="openWhatsApp('{{ product.seller.phone }}', 
+                             'Regarding {{ product.name|escapejs }} (ID: {{ product.id }})')">
+                <i class="fab fa-whatsapp"></i> Contact Seller
+            </button>
+        </div>
+
         <!-- Product Meta -->
-        <div class="product-meta">
+        <div class="product-meta-grid">
             {% if product.seller.user_type == 'FARMER' and product.harvest_date %}
-            <p class="text-success">
+            <div class="meta-card text-success">
                 <i class="fas fa-calendar-alt"></i>
-                Harvest Date: {{ product.harvest_date|date:"M d, Y" }}
-            </p>
+                <div>
+                    <strong>Harvest Date</strong>
+                    <div>{{ product.harvest_date|date:"M d, Y" }}</div>
+                </div>
+            </div>
             {% elif product.seller.user_type == 'SUPPLIER' and product.expiry_date %}
-            <p class="text-warning">
+            <div class="meta-card text-warning">
                 <i class="fas fa-clock"></i>
-                Expiry Date: {{ product.expiry_date|date:"M d, Y" }}
-            </p>
+                <div>
+                    <strong>Expiry Date</strong>
+                    <div>{{ product.expiry_date|date:"M d, Y" }}</div>
+                </div>
+            </div>
             {% endif %}
-            <p class="text-muted">
+            
+            <div class="meta-card">
                 <i class="fas fa-tag"></i>
-                Category: {{ product.get_category_display }}
-            </p>
+                <div>
+                    <strong>Category</strong>
+                    <div>{{ product.get_category_display }}</div>
+                </div>
+            </div>
+            
+            <div class="meta-card">
+                <i class="fas fa-box"></i>
+                <div>
+                    <strong>Stock</strong>
+                    <div>{{ product.stock_quantity }} units available</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

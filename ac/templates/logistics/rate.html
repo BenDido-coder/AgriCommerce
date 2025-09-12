@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Rate Your Delivery Experience</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Please rate your experience with {{ job.provider.get_full_name }}
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Rating</label>
+                    <div class="d-flex align-items-center">
+                        <span class="me-3">1</span>
+                        {{ form.rating }}
+                        <span class="ms-3">5</span>
+                        <span id="rating-value" class="ms-3 fw-bold">3</span>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Comments (Optional)</label>
+                    {{ form.comment }}
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'buyer_dashboard' %}" class="btn btn-secondary">
+                        Skip Rating
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        Submit Rating
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ratingInput = document.querySelector('input[name="rating"]');
+    const ratingValue = document.getElementById('rating-value');
+    
+    ratingInput.addEventListener('input', function() {
+        ratingValue.textContent = this.value;
+    });
+});
+</script>
+{% endblock %}

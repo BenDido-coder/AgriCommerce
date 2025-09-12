@@ -3,41 +3,67 @@
 
 {% block content %}
 <div class="container my-5">
-    <!-- Notifications Section -->
-    <div class="mb-4">
+    <!-- Notifications Section - Made Collapsible and Removable -->
+    <div class="mb-4 notifications-section">
         <div class="card">
-            <div class="card-header bg-info text-white">
-                <i class="fas fa-bell me-2"></i>Notifications
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-bell me-2"></i>Notifications
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-light toggle-btn" type="button" data-bs-toggle="collapse" data-bs-target="#notificationsCollapse">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light close-btn ms-1" type="button">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
-            <div class="card-body p-2">
-                <div class="list-group list-group-flush">
-                    {% for notification in notifications|slice:":5" %}
-                    <a href="{{ notification.related_url|default:'#' }}" class="list-group-item list-group-item-action">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-{{ notification.icon }} text-{{ notification.type }} me-2"></i>
-                                {{ notification.message }}
+            <div class="collapse show" id="notificationsCollapse">
+                <div class="card-body p-2">
+                    <div class="list-group list-group-flush">
+                        {% for notification in notifications|slice:":5" %}
+                        <a href="{{ notification.related_url|default:'#' }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="fas fa-{{ notification.icon }} text-{{ notification.type }} me-2"></i>
+                                    {{ notification.message }}
+                                </div>
+                                <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
                             </div>
-                            <small class="text-muted">{{ notification.created_at|timesince }} ago</small>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item text-muted">
+                            No new notifications
                         </div>
-                    </a>
-                    {% empty %}
-                    <div class="list-group-item text-muted">
-                        No new notifications
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
+    
     <!-- Dashboard Header -->
     <div class="header-section d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3">
-                <i class="fas fa-shopping-basket me-2"></i>
-                Welcome, {{ profile.user.get_full_name }}
-            </h1>
-            <div class="mt-2">
+        <div class="d-flex align-items-center">
+            <!-- Profile Image -->
+            <div class="me-3">
+                {% if profile.profile_photo %}
+                    <img src="{{ profile.profile_photo.url }}" 
+                         class="rounded-circle" 
+                         alt="Profile Photo" 
+                         style="width: 80px; height: 80px; object-fit: cover;">
+                {% else %}
+                    <div class="bg-light rounded-circle" 
+                         style="width: 80px; height: 80px;"></div>
+                {% endif %}
+            </div>
+            
+            <div>
+                <h1 class="h3 mb-1">
+                    <i class="fas fa-shopping-basket me-2"></i>
+                    Welcome, {{ profile.user.get_full_name }}
+                </h1>
                 <div class="d-flex gap-4 text-muted">
                     <p class="mb-0">
                         <i class="fas fa-wallet"></i> 
@@ -45,7 +71,7 @@
                     </p>
                     <p class="mb-0">
                         <i class="fas fa-map-marker-alt"></i> 
-                        {{ profile.primary_address|truncatechars:30 }}
+                        {{ profile.city.name }}: {{ profile.primary_address|truncatechars:30 }}
                     </p>
                 </div>
             </div>
@@ -59,7 +85,7 @@
             </a>
         </div>
     </div>
-
+    
     <!-- Quick Stats -->
     <div class="row mb-4 g-3">
         <div class="col-md-3">
@@ -82,7 +108,10 @@
             <div class="card bg-success text-white h-100">
                 <div class="card-body">
                     <h5 class="card-title">Wishlist Items</h5>
-                    <p class="card-text display-6">{{ wishlist.count }}</p>
+                    <p class="card-text display-6 wishlist-count">{{ wishlist_count }}</p>
+                    <a href="{% url 'wishlist' %}" class="btn btn-light btn-sm mt-2">
+                        <i class="fas fa-heart"></i> View Wishlist
+                    </a>
                 </div>
             </div>
         </div>
@@ -263,7 +292,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+
 
     // Wishlist AJAX
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
@@ -294,6 +324,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     elem => elem.textContent = data.wishlist_count
                 );
             })
+            
             .catch(error => {
                 console.error('Error:', error);
                 alert(error.message || 'Error updating wishlist');
@@ -338,6 +369,41 @@ document.addEventListener('DOMContentLoaded', function() {
 
     searchInput.addEventListener('input', filterProducts);
     categoryFilter.addEventListener('change', filterProducts);
+    const notificationsCollapse = document.getElementById('notificationsCollapse');
+    const toggleBtn = document.querySelector('.toggle-btn i');
+    
+    notificationsCollapse.addEventListener('show.bs.collapse', function () {
+        toggleBtn.className = 'fas fa-minus';
+    });
+    
+    notificationsCollapse.addEventListener('hide.bs.collapse', function () {
+        toggleBtn.className = 'fas fa-plus';
+    });
+
+    // Removable notifications section
+    document.querySelector('.close-btn').addEventListener('click', function() {
+        const section = document.querySelector('.notifications-section');
+        section.style.opacity = '1';
+        
+        // Animate removal
+        let opacity = 1;
+        const fadeEffect = setInterval(() => {
+            if (opacity <= 0) {
+                clearInterval(fadeEffect);
+                section.style.display = 'none';
+                // Store preference in localStorage
+                localStorage.setItem('notifications_hidden', 'true');
+            } else {
+                opacity -= 0.1;
+                section.style.opacity = opacity;
+            }
+        }, 50);
+    });
+
+    // Check if notifications were previously hidden
+    if (localStorage.getItem('notifications_hidden') === 'true') {
+        document.querySelector('.notifications-section').style.display = 'none';
+    }
 
     // Initialize spending chart
     const ctx = document.getElementById('spendingChart').getContext('2d');

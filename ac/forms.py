@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.core.validators import RegexValidator
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from .models import ( BuyerProfile, City, DeliveryJob, FarmerProfile, LogisticsProfile,
+from .models import ( BuyerProfile, City, DeliveryJob, FarmerProfile, LogisticsProfile, Review,
  SupplierProfile, Product, SupportAttachment, SupportTicket, WalletTopupRequest)
 from django.db.models import Q
 from .widgets import MultipleFileInput  # Import at the top of the file
@@ -63,26 +63,64 @@ class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'phone', 'user_type']
-
+class LocationForm(forms.Form):
+    city = forms.ModelChoiceField(
+        queryset=City.objects.all(), 
+        required=True,
+        label="Select Your City"
+    )
+    lat = forms.DecimalField(
+        max_digits=9, 
+        decimal_places=6,
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    lng = forms.DecimalField(
+        max_digits=9, 
+        decimal_places=6,
+        required=False,
+        widget=forms.HiddenInput()
+    ) 
 class FarmerProfileForm(forms.ModelForm):
     class Meta:
         model = FarmerProfile
-        fields = ['farm_name', 'location', 'certification', 'profile_photo']
-
+        fields = ['farm_name', 'location', 'certification', 'profile_photo', 'location_lat', 'location_lng']
+        widgets = {
+            'location': forms.Select(attrs={'class': 'form-select'})
+        }
 
 class SupplierProfileForm(forms.ModelForm):
     class Meta:
         model = SupplierProfile
-        fields = ['company_name', 'location', 'profile_photo']
+        fields = ['company_name', 'location', 'profile_photo', 'location_lat', 'location_lng']
         widgets = {
             'company_name': forms.TextInput(attrs={'class': 'form-control'}),
-            'location':     forms.TextInput(attrs={'class': 'form-control'}),
+            'location': forms.Select(attrs={'class': 'form-select'}),
+            'location_lat': forms.HiddenInput(),
+            'location_lng': forms.HiddenInput(),
         }
-        
+class LocationForm(forms.Form):
+    city = forms.ModelChoiceField(
+        queryset=City.objects.all(), 
+        required=True,
+        label="Select Your City"
+    )
+    lat = forms.DecimalField(
+        max_digits=9, 
+        decimal_places=6,
+        required=False,
+        widget=forms.HiddenInput()
+    )
+    lng = forms.DecimalField(
+        max_digits=9, 
+        decimal_places=6,
+        required=False,
+        widget=forms.HiddenInput()
+    )   
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'description', 'price', 'image', 'category', 'stock_quantity', 
+        fields = ['name', 'description', 'price', 'image', 'category', 'unit', 'stock_quantity', 
                   'harvest_date', 'expiry_date']
         labels = {
             'harvest_date': "Harvest Date",
@@ -136,43 +174,67 @@ class CurrencyConvertForm(forms.Form):
 class LogisticsProfileForm(forms.ModelForm):
     service_areas = forms.ModelMultipleChoiceField(
         queryset=City.objects.all(),
-        widget=forms.SelectMultiple(attrs={'class': 'form-select'}),
+        widget=forms.CheckboxSelectMultiple,  # Changed to checkbox widget
         required=False
     )
     class Meta:
         model = LogisticsProfile
-        fields = ['vehicle_type', 'license_plate', 'nationwide', 'service_areas', 'profile_photo']
+        fields = ['vehicle_type', 'license_file', 'national_id', 
+                  'nationwide', 'service_areas', 'profile_photo']
         widgets = {
-            'service_areas': forms.SelectMultiple(attrs={'class': 'form-select'}),
-            'nationwide': forms.CheckboxInput(attrs={'class': 'form-check-input'})
+            'nationwide': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
+    
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['service_areas'].label = "Service Cities"
         self.fields['service_areas'].queryset = City.objects.all()
         self.fields['service_areas'].required = False
 
+        # Add Bootstrap classes to other fields
+        self.fields['vehicle_type'].widget.attrs.update({'class': 'form-select'})
+        self.fields['license_file'].widget.attrs.update({'class': 'form-control'})
+        self.fields['national_id'].widget.attrs.update({'class': 'form-control'})
+        self.fields['profile_photo'].widget.attrs.update({'class': 'form-control'})
+
     def clean(self):
         cleaned_data = super().clean()
         if cleaned_data.get('nationwide') and cleaned_data.get('service_areas'):
             raise forms.ValidationError("Cannot select both nationwide and specific cities")
         return cleaned_data
-    
+      
 class JobCompletionForm(forms.ModelForm):
     class Meta:
         model = DeliveryJob
         fields = ['delivery_proof']
+        
+class LogisticsRatingForm(forms.ModelForm):
+    class Meta:
+        model = Review
+        fields = ['rating', 'comment']
+        widgets = {
+            'rating': forms.NumberInput(attrs={
+                'min': 1,
+                'max': 5,
+                'class': 'form-range',
+                'type': 'range'
+            }),
+            'comment': forms.Textarea(attrs={
+                'rows': 3,
+                'placeholder': 'Share your delivery experience...'
+            })
+        }
 
 class BuyerProfileForm(forms.ModelForm):
     class Meta:
         model = BuyerProfile
-        fields = ['primary_address', 'newsletter_optin']
+        fields = ['primary_address', 'city', 'location_lat', 'location_lng', 'newsletter_optin', 'profile_photo']
         widgets = {
-            'primary_address': forms.Textarea(attrs={
-                'rows': 3,
-                'placeholder': 'Enter your primary delivery address'
-            })
-        }  
+            'primary_address': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Enter your detailed address'}),
+            'city': forms.Select(attrs={'class': 'form-select'}),
+            'location_lat': forms.HiddenInput(),
+            'location_lng': forms.HiddenInput(),
+        }       
 class DeliveryConfirmationForm(forms.Form):
     delivery_proof = forms.FileField(
         label='Upload Delivery Proof (Optional)',
@@ -183,43 +245,6 @@ class DeliveryConfirmationForm(forms.Form):
         required=True,
         label="I confirm that the products have been delivered in good condition"
     )
-
-class SupportTicketForm(forms.ModelForm):
-    attachments = forms.FileField(
-        widget=MultipleFileInput(attrs={'multiple': True}),  # Use MultipleFileInput here
-        required=False,
-        label='Attachments (max 5 files)'
-    )
-
-    class Meta:
-        model = SupportTicket
-        fields = ['subject', 'message']
-
-    def clean_attachments(self):
-        attachments = self.files.getlist('attachments')
-        if len(attachments) > 5:
-            raise forms.ValidationError("Maximum 5 files allowed")
-        
-        valid_types = ['image/jpeg', 'image/png', 'application/pdf']
-        for f in attachments:
-            if f.content_type not in valid_types:
-                raise forms.ValidationError(
-                    f"Invalid file type: {f.name}. Only PDF and images(png, jpeg) are allowed."
-                )
-        return attachments
-    
-    def save(self, commit=True):
-        instance = super().save(commit)
-        if commit:
-            for f in self.files.getlist('attachments'):
-                SupportAttachment.objects.create(
-                    file=f,
-                    ticket=instance
-                )
-        return instance
-    
-
-
 class ContactForm(forms.Form):
     SUBJECT_CHOICES = [
         ('general', 'General Inquiry'),
@@ -283,3 +308,72 @@ class WalletTopupForm(forms.ModelForm):
             if not screenshot.name.lower().endswith(('.jpg', '.jpeg', '.png', '.pdf')):
                 raise forms.ValidationError("Unsupported file format")
         return screenshot
+    
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True  # Enable multiple files
+
+class MultipleFileField(forms.FileField):
+    widget = MultipleFileInput(attrs={'multiple': True})  # Use our custom widget
+
+    def clean(self, data, initial=None):
+        # Handle single file upload
+        if not data:
+            return super().clean(data, initial)
+        
+        # Handle multiple files
+        if not isinstance(data, (list, tuple)):
+            data = [data]
+            
+        return [super().clean(d, initial) for d in data]
+    
+class SupportTicketForm(forms.ModelForm):
+    attachments = MultipleFileField(  # Use our custom field
+        required=False,
+        label='Attachments (max 5 files)'
+    )
+
+    class Meta:
+        model = SupportTicket
+        fields = ['subject', 'message']
+
+    def clean_attachments(self):
+        attachments = self.cleaned_data.get('attachments', [])
+        
+        # If no files submitted
+        if not attachments:
+            return []
+            
+        # Handle single file case
+        if not isinstance(attachments, list):
+            attachments = [attachments]
+            
+        # Validation logic
+        if len(attachments) > 5:
+            raise forms.ValidationError("Maximum 5 files allowed")
+            
+        valid_types = ['image/jpeg', 'image/png', 'application/pdf']
+        max_size = 5 * 1024 * 1024  # 5MB
+        
+        for f in attachments:
+            if f.size > max_size:
+                raise forms.ValidationError(f"File {f.name} exceeds 5MB limit")
+            if f.content_type not in valid_types:
+                raise forms.ValidationError(
+                    f"Invalid file type: {f.name}. Only PDF and images (png, jpeg) are allowed."
+                )
+        return attachments
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        
+        if commit:
+            attachments = self.cleaned_data.get('attachments', [])
+            if not isinstance(attachments, list):
+                attachments = [attachments]
+                
+            for f in attachments:
+                SupportAttachment.objects.create(
+                    file=f,
+                    ticket=instance
+                )
+        return instance

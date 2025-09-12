@@ -151,6 +151,24 @@ class Notification(models.Model):
     
     class Meta:
         ordering = ['-created_at']
+ETHIOPIAN_CITIES = [
+    ('ADDIS_ABABA', 'Addis Ababa'),
+    ('DIRE_DAWA', 'Dire Dawa'),
+    ('BAHIR_DAR', 'Bahir Dar'),
+    ('MEKELLE', 'Mekelle'),
+    ('AWASA', 'Awasa'),
+    ('JIMMA', 'Jimma'),
+    ('GONDAR', 'Gondar'),
+    ('NAZRET', 'Nazret'),
+    ('DEBRE_MARKOS', 'Debre Markos'),
+    ('ARBA_MINCH', 'Arba Minch'),
+]
+
+class City(models.Model):
+    name = models.CharField(max_length=50, choices=ETHIOPIAN_CITIES, unique=True)
+    
+    def __str__(self):
+        return self.name
 
 class FarmerProfile(models.Model):
     user = models.OneToOneField(
@@ -160,7 +178,9 @@ class FarmerProfile(models.Model):
         limit_choices_to={'user_type': 'FARMER'}
     )
     farm_name = models.CharField(max_length=100)
-    location = models.CharField(max_length=100)
+    location = models.ForeignKey(City, on_delete=models.SET_NULL, null=True)
+    location_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     certification = models.FileField(upload_to='certifications/', null=True, blank=True)
     profile_photo = models.ImageField(
         upload_to='avatars/',
@@ -178,9 +198,6 @@ class FarmerProfile(models.Model):
             raise ValidationError("User must be a farmer")
 
 
-
-
-
 class SupplierProfile(models.Model):
     user = models.OneToOneField(
         User,
@@ -189,7 +206,9 @@ class SupplierProfile(models.Model):
         limit_choices_to={'user_type': 'SUPPLIER'},
     )
     company_name = models.CharField(max_length=150)
-    location = models.CharField(max_length=150)
+    location = models.ForeignKey(City, on_delete=models.SET_NULL, null=True)
+    location_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     profile_photo = models.ImageField(
         upload_to='supplier_avatars/',
         blank=True,
@@ -265,8 +284,20 @@ class Product(models.Model):
             return [c for c in cls.CATEGORY_CHOICES if c[0] in cls.FARMER_CATEGORIES]
         elif user_type == 'SUPPLIER':
             return [c for c in cls.CATEGORY_CHOICES if c[0] in cls.SUPPLIER_CATEGORIES]
-        return cls.CATEGORY_CHOICES
-
+        return cls.CATEGORY_CHOICES    
+    
+    # Add unit choices
+    UNIT_CHOICES = [
+        ('kg', 'Kilogram'),
+        ('g', 'Gram'),
+        ('l', 'Liter'),
+        ('ml', 'Milliliter'),
+        ('pc', 'Piece'),
+        ('bag', 'Bag'),
+        ('bunch', 'Bunch'),
+        ('box', 'Box'),
+    ]
+    
     # Fields
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -274,6 +305,12 @@ class Product(models.Model):
         max_digits=10,
         decimal_places=2,
         validators=[MinValueValidator(0.01)]
+    )
+    unit = models.CharField(
+        max_length=10,
+        choices=UNIT_CHOICES,
+        default='kg',
+        help_text="Measurement unit for this product"
     )
     seller = models.ForeignKey(
         User,
@@ -346,7 +383,11 @@ class EscrowTransaction(models.Model):
 
     buyer = models.ForeignKey(User, related_name='purchases', on_delete=models.CASCADE)
     seller = models.ForeignKey(User, related_name='sales', on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product = models.ForeignKey(
+            Product, 
+            on_delete=models.CASCADE,
+            related_name='transactions'  # Add this line
+        )
     quantity = models.PositiveIntegerField(default=1)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='held')
@@ -408,26 +449,7 @@ class TransactionUpdate(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     is_read = models.BooleanField(default=False)
-#logistics provider model
-ETHIOPIAN_CITIES = [
-    ('ADDIS_ABABA', 'Addis Ababa'),
-    ('DIRE_DAWA', 'Dire Dawa'),
-    ('BAHIR_DAR', 'Bahir Dar'),
-    ('MEKELLE', 'Mekelle'),
-    ('AWASA', 'Awasa'),
-    ('JIMMA', 'Jimma'),
-    ('GONDAR', 'Gondar'),
-    ('NAZRET', 'Nazret'),
-    ('DEBRE_MARKOS', 'Debre Markos'),
-    ('ARBA_MINCH', 'Arba Minch'),
-]
-
-class City(models.Model):
-    name = models.CharField(max_length=50, choices=ETHIOPIAN_CITIES, unique=True)
-    
-    def __str__(self):
-        return self.name
-    
+#logistics provider model    
 class LogisticsProfile(models.Model):
     VEHICLE_TYPES = [
         ('TRUCK', 'Truck'),
@@ -438,9 +460,20 @@ class LogisticsProfile(models.Model):
     
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='logisticsprofile')
     vehicle_type = models.CharField(max_length=20, choices=VEHICLE_TYPES, default='TRUCK')
-    license_plate = models.CharField(max_length=20, default='N/A')
     service_areas = models.ManyToManyField('City', help_text="Select cities you service (select Nationwide for all areas)", related_name='logistics_providers')
-    nationwide = models.BooleanField(default=False)
+    nationwide = models.BooleanField(default=False, help_text="Do you serve all of Ethiopia?")
+    national_id = models.FileField(
+        upload_to='national_ids/',
+        null=True,
+        blank=True,
+        help_text="Upload scanned copy of your national ID"
+    )
+    license_file = models.FileField(
+        upload_to='license_files/',
+        null=True,
+        blank=True,
+        help_text="Upload scanned copy of your driving license"
+    )
     profile_photo = models.ImageField(upload_to='logistics/profile/', null=True)
     completed_jobs = models.PositiveIntegerField(default=0)
     average_rating = models.DecimalField(max_digits=3, decimal_places=2, default=5.0)
@@ -462,6 +495,12 @@ class LogisticsProfile(models.Model):
         if self.nationwide:
             return ["Nationwide"]
         return [area.strip() for area in self.service_areas.split(',')]
+    def is_complete(self):
+        return all([
+            self.service_areas.exists(),
+            self.national_id,
+            self.license_file
+        ])
 
 # Add to Order model (create if not exists)
 class Order(models.Model):
@@ -471,6 +510,21 @@ class Order(models.Model):
         blank=True,
         on_delete=models.SET_NULL
     )
+    buyer = models.ForeignKey(
+        User, 
+        on_delete=models.CASCADE,
+        related_name='orders',
+        null=False,  # Allow null temporarily
+        blank=False
+    )
+    seller = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='orders_as_seller',
+        null=True,  # Allow null temporarily
+        blank=True
+    )
+
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1) 
     logistics = models.ForeignKey(
@@ -495,6 +549,13 @@ class DeliveryJob(models.Model):
     
     provider = models.ForeignKey(User, on_delete=models.CASCADE)
     client = models.ForeignKey(User, related_name='jobs', on_delete=models.CASCADE)
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name='delivery_jobs',
+        null=True,
+        blank=True
+    )
     pickup_location = models.TextField()
     dropoff_location = models.TextField()
     pickup_time = models.DateTimeField(default=timezone.now, help_text="Estimated pickup time")
@@ -502,33 +563,83 @@ class DeliveryJob(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     delivery_proof = models.FileField(upload_to='delivery_proofs/', null=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    pickup_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    pickup_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    dropoff_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    dropoff_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
 
 class Review(models.Model):
-    job = models.OneToOneField(DeliveryJob, on_delete=models.CASCADE)
-    rating = models.PositiveIntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
-    comment = models.TextField()
+    job = models.OneToOneField(
+        DeliveryJob, 
+        on_delete=models.CASCADE,
+        related_name='review'
+    )
+    logistics = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    client = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='given_reviews'
+    )
+    rating = models.PositiveIntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(5)]
+    )
+    comment = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    def save(self, *args, **kwargs):
+        # Automatically set logistics provider from job
+        if not self.logistics:
+            self.logistics = self.job.provider
+        super().save(*args, **kwargs)
 
 # Buyer dashboard
 class BuyerProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     primary_address = models.TextField(blank=True, default='Address not specified')  # Made optional
+    city = models.ForeignKey(
+        City, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name="buyerprofile_city"
+    )  # Add city field
+    location_lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    location_lng = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     saved_suppliers = models.ManyToManyField(User, related_name='followers')
     newsletter_optin = models.BooleanField(default=True)
+    profile_photo = models.ImageField(
+        upload_to='buyer_profile_photos/',
+        null=True,
+        blank=True,
+        help_text="Upload your profile photo"
+    )
     delivery_city = models.ForeignKey(
-    'City',
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True,
-    verbose_name="Primary Delivery City"
-   )
+        City,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Primary Delivery City",
+        related_name="buyerprofile_delivery_city"
+    )
     def __str__(self):
         return f"Buyer Profile - {self.user.email}"
 
 class WishlistItem(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='wishlist_items'
+    )
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.product.name}"
 
 class SupportTicket(models.Model):
     STATUS_CHOICES = [

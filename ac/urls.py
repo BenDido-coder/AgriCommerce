@@ -91,7 +91,7 @@ urlpatterns = [
     path('jobs/<int:job_id>/reject/', views.reject_job, name='reject_job'),
     path('logistics-providers/', views.logistics_providers, name='logistics_providers'),
     path('jobs/<int:job_id>/', views.job_details, name='job_details'),
-
+    path('rate-logistics/<int:job_id>/', views.rate_logistics, name='rate_logistics'),
     # Buyer Routes
     path('buyer/', include([
         path('dashboard/', login_required(views.buyer_dashboard), name='buyer_dashboard'),
@@ -107,7 +107,7 @@ urlpatterns = [
         path('support/ticket/', login_required(views.create_support_ticket), name='create_support_ticket'),
         ])),
     path('notifications/', views.get_notifications, name='get_notifications'),
-
+    path('wishlist/', views.wishlist_view, name='wishlist'),
 
     # Wallet System
     path('wallet/topup/', login_required(views.wallet_topup), name='wallet_topup'),
